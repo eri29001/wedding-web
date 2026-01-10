@@ -62,6 +62,23 @@ async function inicializarBaseDeDatos() {
             link TEXT
         )`);
 
+        //Tabla de invitados
+        // --- NUEVAS TABLAS PARA INVITADOS ---
+        await client.execute(`
+            CREATE TABLE IF NOT EXISTS guests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            name TEXT
+        )`);
+
+        // --- TABLA DE PRESUPUESTO ---
+        await client.execute(`
+            CREATE TABLE IF NOT EXISTS wedding_profiles (
+            user_id TEXT PRIMARY KEY,
+            wedding_date TEXT,   -- Ej: '2025-12-31'
+            budget_limit REAL    -- Ej: 20000 (El tope de dinero)
+        )`);
+
         console.log("✅ Tablas sincronizadas con Turso correctamente.");
     } catch (error) {
         console.error("❌ Error inicializando tablas en Turso:", error);
@@ -112,7 +129,6 @@ let plannerInbox = [];
 app.get('/api/admin/proveedores', async (req, res) => {
     try {
         const result = await db.execute("SELECT * FROM proveedores");
-        // En Turso, los datos vienen en result.rows
         const data = result.rows.map(p => ({ ...p, estilo: p.estilo ? p.estilo.split(',') : [] }));
         res.json({ data: data });
     } catch (err) {
@@ -242,7 +258,7 @@ app.get('/api/dashboard-data', (req, res) => {
     res.json({ inbox: plannerInbox });
 });
 
-// Función auxiliar para leer BD (Adaptada a Turso con Promise.all)
+// Función auxiliar para leer BD 
 async function obtenerDatosPlanner() {
     try {
         const [provResult, docResult] = await Promise.all([
@@ -255,6 +271,164 @@ async function obtenerDatosPlanner() {
         return { proveedores: [], docs: [] };
     }
 }
+
+// --- RUTAS DE INVITADOS (API) ---
+
+// 1. Obtener lista
+app.get('/api/guests/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const rs = await client.execute({
+            sql: "SELECT * FROM guests WHERE user_id = ?",
+            args: [userId]
+        });
+        res.json({ success: true, data: rs.rows });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// 2. Guardar nuevo
+app.post('/api/guests', async (req, res) => {
+    try {
+        const { userId, name } = req.body;
+        await client.execute({
+            sql: "INSERT INTO guests (user_id, name) VALUES (?, ?)",
+            args: [userId, name]
+        });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// 3. Borrar
+app.delete('/api/guests/:id', async (req, res) => {
+    try {
+        await client.execute({
+            sql: "DELETE FROM guests WHERE id = ?",
+            args: [req.params.id]
+        });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// --- RUTA PARA REGISTRAR UN PAGO (ABONO) ---
+app.post('/api/budget/pay', async (req, res) => {
+    try {
+        const { id, amount } = req.body;
+        
+        // 1. Obtener el estado actual
+        const current = await client.execute({
+            sql: "SELECT total_cost, paid_amount FROM budget WHERE id = ?",
+            args: [id]
+        });
+        
+        if (current.rows.length === 0) return res.json({ success: false });
+        
+        const item = current.rows[0];
+        const newPaid = item.paid_amount + parseFloat(amount);
+        const newStatus = newPaid >= item.total_cost ? 'Pagado' : 'Pendiente';
+
+        // 2. Actualizar la base de datos
+        await client.execute({
+            sql: "UPDATE budget SET paid_amount = ?, status = ? WHERE id = ?",
+            args: [newPaid, newStatus, id]
+        });
+
+        res.json({ success: true, newPaid, newStatus });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ==========================================
+//SISTEMA DE ALERTAS
+app.get('/api/alerts/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const alerts = [];
+
+        // A. Obtener Configuración de la Novia
+        const profileRes = await client.execute({
+            sql: "SELECT * FROM wedding_profiles WHERE user_id = ?",
+            args: [userId]
+        });
+        const profile = profileRes.rows[0];
+
+        // Si no ha configurado perfil, no molestamos con alertas.
+        if (!profile) return res.json({ success: true, alerts: [] });
+
+        // B. Obtener Gastado Real
+        const budgetRes = await client.execute({
+            sql: "SELECT SUM(final_cost) as total FROM budget WHERE user_id = ?", 
+            args: [userId]
+        });
+        const gastado = budgetRes.rows[0]?.total || 0;
+
+        // --- REGLAS DEL SILENCIO (Solo activan si es grave) ---
+        
+        // Regla 1: Dinero (Solo avisa si supera el 90%)
+        const limite = profile.budget_limit || 1; 
+        const porcentaje = (gastado / limite) * 100;
+
+        if (porcentaje >= 100) {
+            alerts.push({
+                level: 'HIGH', // Rojo
+                title: 'Presupuesto Excedido',
+                msg: `Has superado tu límite de $${limite}.`
+            });
+        } else if (porcentaje >= 90) {
+            alerts.push({
+                level: 'MEDIUM', // Naranja
+                title: 'Presupuesto al Límite',
+                msg: `Atención: Te queda menos del 10% de tu presupuesto.`
+            });
+        }
+
+        // Regla 2: Tiempo (Solo avisa si faltan menos de 3 meses)
+        if (profile.wedding_date) {
+            const hoy = new Date();
+            const fechaBoda = new Date(profile.wedding_date);
+            const mesesFaltantes = (fechaBoda - hoy) / (1000 * 60 * 60 * 24 * 30);
+
+            if (mesesFaltantes < 3 && mesesFaltantes > 0) {
+                alerts.push({
+                    level: 'HIGH',
+                    title: 'Cuenta Regresiva Crítica',
+                    msg: "Faltan menos de 3 meses. Asegura proveedores pendientes."
+                });
+            }
+        }
+
+        res.json({ success: true, alerts });
+
+    } catch (e) {
+        console.error(e);
+        res.json({ success: false, error: e.message });
+    }
+});
+
+// --- GUARDAR PERFIL DE BODA (Fecha y Presupuesto) ---
+app.post('/api/profile', async (req, res) => {
+    try {
+        const { userId, weddingDate, budgetLimit } = req.body;
+
+        // Usamos INSERT OR REPLACE para que sirva tanto para crear como para actualizar
+        await client.execute({
+            sql: `INSERT OR REPLACE INTO wedding_profiles (user_id, wedding_date, budget_limit) 
+                  VALUES (?, ?, ?)`,
+            args: [userId, weddingDate, budgetLimit]
+        });
+
+        res.json({ success: true, message: "Perfil actualizado" });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`\n✨ SERVIDOR PLANNER LISTO EN PUERTO: ${PORT}`);
