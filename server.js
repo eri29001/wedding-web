@@ -2,32 +2,30 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-// import sqlite3 from 'sqlite3'; // <-- YA NO USAMOS ESTE
-import { createClient } from '@libsql/client'; // <-- USAMOS ESTE PARA TURSO
-import { filtrarConIA } from './aiLogic.js'; 
+import { createClient } from '@libsql/client'; // Turso
 
 // Carga el .env
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Render asigna un puerto automáticamente
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json({ limit: '50mb' })); 
+app.use(express.json({ limit: '50mb' }));
 
 // ==========================================
 // 1. CONFIGURACIÓN BASE DE DATOS (TURSO)
 // ==========================================
 
 const db = createClient({
-    url: process.env.DB_URL || "file:local-fallback.db", // Lee del .env
-    authToken: process.env.DB_TOKEN // Lee del .env
+    url: process.env.DB_URL || "file:local-fallback.db",
+    authToken: process.env.DB_TOKEN
 });
 
-// Función para inicializar tablas (Turso usa async/await)
+// Función para inicializar TODAS las tablas
 async function inicializarBaseDeDatos() {
     try {
-        // Tabla Proveedores
+        // --- 1. Tabla Proveedores (Catálogo General) ---
         await db.execute(`CREATE TABLE IF NOT EXISTS proveedores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL,
@@ -39,44 +37,75 @@ async function inicializarBaseDeDatos() {
             costo INTEGER
         )`);
 
-        // Tabla Documentos
+        // --- 2. Tabla Documentos (Con soporte para Eventos) ---
         await db.execute(`CREATE TABLE IF NOT EXISTS documentos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre_archivo TEXT,
             tipo TEXT, 
             url TEXT,
             compartido_planner BOOLEAN DEFAULT 0,
-            dueño_id TEXT
+            dueño_id TEXT,
+            event_id TEXT -- Vinculación con calendario
         )`);
 
-        // Tabla Eventos (Calendario)
+        // --- 3. Tabla Eventos (Calendario) ---
         await db.execute(`CREATE TABLE IF NOT EXISTS events (
             id TEXT PRIMARY KEY,
             title TEXT,
             start TEXT,
             color TEXT,
-            brideId TEXT,
+            brideId TEXT, -- ID de la novia dueña del evento
             target TEXT,
             deadline TEXT,
             description TEXT,
             link TEXT
         )`);
 
-        //Tabla de invitados
-        // --- NUEVAS TABLAS PARA INVITADOS ---
-        await client.execute(`
-            CREATE TABLE IF NOT EXISTS guests (
+        // --- 4. Tabla Invitados ---
+        await db.execute(`CREATE TABLE IF NOT EXISTS guests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT,
-            name TEXT
+            name TEXT,
+            status TEXT DEFAULT 'Pendiente'
         )`);
 
-        // --- TABLA DE PRESUPUESTO ---
-        await client.execute(`
-            CREATE TABLE IF NOT EXISTS wedding_profiles (
+        // --- 5. Perfil de Boda (Configuración Novia) ---
+        await db.execute(`CREATE TABLE IF NOT EXISTS wedding_profiles (
             user_id TEXT PRIMARY KEY,
-            wedding_date TEXT,   -- Ej: '2025-12-31'
-            budget_limit REAL    -- Ej: 20000 (El tope de dinero)
+            wedding_date TEXT,
+            budget_limit REAL,
+            estilos_preferidos TEXT,
+            invitados_estimados INTEGER
+        )`);
+
+        // --- 6. Presupuesto (Items de gasto) ---
+        await db.execute(`CREATE TABLE IF NOT EXISTS budget (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            category TEXT,
+            item_name TEXT,
+            estimated_cost REAL,
+            final_cost REAL DEFAULT 0,
+            paid_amount REAL DEFAULT 0,
+            status TEXT DEFAULT 'Pendiente'
+        )`);
+
+        // --- 7. Checklist (Tareas) ---
+        await db.execute(`CREATE TABLE IF NOT EXISTS checklist (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            task_text TEXT,
+            is_completed BOOLEAN DEFAULT 0,
+            priority TEXT DEFAULT 'Normal'
+        )`);
+
+        // --- 8. Proveedores Seleccionados (Carrito de la Novia) ---
+        await db.execute(`CREATE TABLE IF NOT EXISTS proveedores_seleccionados (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            proveedor_id INTEGER,
+            estado TEXT DEFAULT 'Contratado',
+            FOREIGN KEY(proveedor_id) REFERENCES proveedores(id)
         )`);
 
         console.log("✅ Tablas sincronizadas con Turso correctamente.");
@@ -85,7 +114,6 @@ async function inicializarBaseDeDatos() {
     }
 }
 
-// Ejecutamos la inicialización al arrancar
 inicializarBaseDeDatos();
 
 
@@ -95,40 +123,45 @@ inicializarBaseDeDatos();
 
 let chatModel;
 if (!process.env.GEMINI_API_KEY) {
-    console.error("❌ ERROR: No se encontró API KEY en el archivo .env");
+    console.error("⚠️ ADVERTENCIA: No se encontró GEMINI_API_KEY en .env");
 } else {
     try {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        chatModel = genAI.getGenerativeModel({ model: "gemini-flash-latest" }); 
-        console.log("✅ Gemini (AF Virtual) conectado y listo.");
+        chatModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Modelo actualizado
+        console.log("✅ Gemini (IA) conectado.");
     } catch (error) {
-        console.error("❌ Error conectando con Gemini:", error);
+        console.error("❌ Error conectando Gemini:", error);
     }
 }
 
 // ==========================================
-// 3. DATOS EN MEMORIA (Login)
+// 3. DATOS EN MEMORIA (Usuarios)
 // ==========================================
+// En producción, esto debería ir también a base de datos
 const users = [
-    { id: 'planner1', email: 'planner@andreafigueroa.com', password: 'plannercustommer_123', role: 'planner', full_name: 'Andrea Figueroa' },
-    { id: 'novia1', email: 'earrobalopez@gmail.com', password: 'Gabi9090', role: 'novia', full_name: 'Erika Arroba' },
-    { id: 'novia2', email: 'maria.gonzalez@boda.com', password: 'mariaBoda2026', role: 'novia', full_name: 'Maria Gonzalez' },
-    { id: 'novia3', email: 'sofia.martinez@email.com', password: 'sofiaLove23', role: 'novia', full_name: 'Sofia Martinez' },
-    { id: 'novia4', email: 'isabella.rojas@future.com', password: 'isaYjuan2025', role: 'novia', full_name:'Isabella Rojas'},
-    { id: 'novia5', email: 'carla.ruiz@wedding.com', password: 'ruizBoda99', role: 'novia', full_name:'Carla Ruiz'},
-    { id: 'novia6', email: 'valentina.lopez@dream.com', password: 'valeDiosa', role: 'novia', full_name:'Valentina Lopez'},
-    { id: 'novia7', email: 'lucia.fer@mail.com', password: 'lucil120', role: 'novia', full_name:'Lucia Fernandez'}
+    { id: 'planner1', email: 'planner@andreafigueroa.com', password: '123', role: 'planner', full_name: 'Andrea Figueroa' },
+    { id: 'novia1', email: 'novia@gmail.com', password: '123', role: 'novia', full_name: 'Erika Arroba' },
+    // ... tus otros usuarios ...
 ];
 
-let plannerInbox = [];
+let plannerInbox = []; // Buzón temporal en memoria
 
 // ==========================================
-// 4. RUTAS API: GESTIÓN Y EVENTOS (ADAPTADO A TURSO)
+// 4. RUTAS API: AUTENTICACIÓN Y ADMIN
 // ==========================================
 
+app.post('/api/login', (req, res) => {
+    const { email, password } = req.body;
+    const user = users.find(u => u.email === email && u.password === password);
+    if (user) res.json({ success: true, userId: user.id, role: user.role, name: user.full_name });
+    else res.status(401).json({ success: false, message: 'Credenciales incorrectas.' });
+});
+
+// Admin: Obtener catálogo completo de proveedores
 app.get('/api/admin/proveedores', async (req, res) => {
     try {
         const result = await db.execute("SELECT * FROM proveedores");
+        // Procesamos 'estilo' para enviarlo como array si es necesario
         const data = result.rows.map(p => ({ ...p, estilo: p.estilo ? p.estilo.split(',') : [] }));
         res.json({ data: data });
     } catch (err) {
@@ -136,7 +169,11 @@ app.get('/api/admin/proveedores', async (req, res) => {
     }
 });
 
-// --- CALENDARIO (GET) ---
+// ==========================================
+// 5. RUTAS API: CALENDARIO (NOVIA Y PLANNER)
+// ==========================================
+
+// GET: Obtener eventos de una novia específica
 app.get('/api/events', async (req, res) => {
     const { brideId } = req.query;
     try {
@@ -154,7 +191,7 @@ app.get('/api/events', async (req, res) => {
             extendedProps: {
                 target: row.target,
                 deadline: row.deadline,
-                desc: row.description,
+                description: row.description,
                 link: row.link
             }
         }));
@@ -164,24 +201,40 @@ app.get('/api/events', async (req, res) => {
     }
 });
 
-// --- CALENDARIO (POST) ---
+// POST: Crear o Actualizar Evento
 app.post('/api/events', async (req, res) => {
     const ev = req.body;
-    const id = ev.id || Date.now().toString();
-    const target = ev.extendedProps ? ev.extendedProps.target : ev.target;
-    const desc = ev.extendedProps ? ev.extendedProps.desc : ev.desc;
-    const deadline = ev.extendedProps ? ev.extendedProps.deadline : ev.deadline;
-    const link = ev.extendedProps ? ev.extendedProps.link : ev.link;
+    
+    // Validación básica
+    if (!ev.title || !ev.start || !ev.brideId) {
+        return res.status(400).json({ error: "Faltan datos obligatorios (title, start, brideId)" });
+    }
 
-    const sql = `INSERT OR REPLACE INTO events (id, title, start, color, brideId, target, deadline, description, link) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const id = ev.id || Date.now().toString();
+    const target = ev.extendedProps?.target || ev.target || 'General';
+    const desc = ev.extendedProps?.description || ev.description || ''; // Corregido key
+    const deadline = ev.extendedProps?.deadline || ev.deadline || '';
+    const link = ev.extendedProps?.link || ev.link || '';
+
+    // UPSERT (Insertar o Actualizar si existe ID)
+    const sql = `
+        INSERT INTO events (id, title, start, color, brideId, target, deadline, description, link) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+            title = excluded.title,
+            start = excluded.start,
+            color = excluded.color,
+            target = excluded.target,
+            deadline = excluded.deadline,
+            description = excluded.description,
+            link = excluded.link
+    `;
 
     try {
         await db.execute({
             sql: sql,
             args: [id, ev.title, ev.start, ev.color, ev.brideId, target, deadline, desc, link]
         });
-        
-        console.log(`📅 Evento guardado: ${ev.title}`);
         res.json({ success: true, id: id });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -189,13 +242,180 @@ app.post('/api/events', async (req, res) => {
 });
 
 // ==========================================
-// 5. RUTAS API: IA Y CHATBOT 
+// 6. RUTAS API: CHECKLIST (TAREAS)
+// ==========================================
+
+app.get('/api/checklist/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const result = await db.execute({
+            sql: "SELECT * FROM checklist WHERE user_id = ? ORDER BY id DESC",
+            args: [userId]
+        });
+        res.json(result.rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/checklist', async (req, res) => {
+    try {
+        const { userId, text, priority } = req.body;
+        const result = await db.execute({
+            sql: "INSERT INTO checklist (user_id, task_text, priority) VALUES (?, ?, ?)",
+            args: [userId, text, priority || 'Normal']
+        });
+        res.json({ success: true, id: result.lastInsertRowid });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.patch('/api/checklist/:id', async (req, res) => {
+    try {
+        const { completed } = req.body; // true/false
+        await db.execute({
+            sql: "UPDATE checklist SET is_completed = ? WHERE id = ?",
+            args: [completed ? 1 : 0, req.params.id]
+        });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/checklist/:id', async (req, res) => {
+    try {
+        await db.execute({ sql: "DELETE FROM checklist WHERE id = ?", args: [req.params.id] });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ==========================================
+// 7. RUTAS API: PROVEEDORES Y RECOMENDACIONES
+// ==========================================
+
+// MATCHMAKING: Recomendados para la novia
+app.get('/api/recommendations/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // 1. Perfil Novia
+        const perfilRes = await db.execute({ sql: "SELECT * FROM wedding_profiles WHERE user_id = ?", args: [userId] });
+        const perfil = perfilRes.rows[0];
+
+        // 2. Todos los proveedores
+        const provRes = await db.execute("SELECT * FROM proveedores");
+        const proveedores = provRes.rows;
+
+        if (!perfil) return res.json({ success: true, data: proveedores }); // Sin filtro
+
+        // 3. Algoritmo
+        const recomendados = proveedores.map(p => {
+            let score = 0;
+            const costo = p.costo || 0;
+            const maxItemBudget = (perfil.budget_limit || 0) * 0.40;
+            
+            if (costo <= maxItemBudget) score += 50;
+
+            if (perfil.estilos_preferidos && p.estilo) {
+                const estilosNovia = perfil.estilos_preferidos.toLowerCase();
+                const estiloProv = p.estilo.toLowerCase();
+                // Búsqueda simple de string
+                if (estilosNovia.split(',').some(e => estiloProv.includes(e.trim()))) score += 50;
+            }
+            return { ...p, score };
+        });
+
+        // Ordenar por score
+        recomendados.sort((a, b) => b.score - a.score);
+        res.json({ success: true, data: recomendados });
+
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Guardar proveedor seleccionado
+app.post('/api/proveedores/seleccionar', async (req, res) => {
+    try {
+        const { userId, proveedorId } = req.body;
+        await db.execute({
+            sql: "INSERT INTO proveedores_seleccionados (user_id, proveedor_id) VALUES (?, ?)",
+            args: [userId, proveedorId]
+        });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ==========================================
+// 8. RUTAS API: DOCUMENTOS E INVITADOS
+// ==========================================
+
+// Subir documento (puede ser general o de evento)
+app.post('/api/documentos', async (req, res) => {
+    try {
+        const { userId, fileName, fileType, fileUrl, eventId } = req.body;
+        await db.execute({
+            sql: "INSERT INTO documentos (dueño_id, nombre_archivo, tipo, url, event_id, compartido_planner) VALUES (?, ?, ?, ?, ?, 1)",
+            args: [userId, fileName, fileType, fileUrl, eventId || null]
+        });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Invitados
+app.get('/api/guests/:userId', async (req, res) => {
+    try {
+        const rs = await db.execute({ sql: "SELECT * FROM guests WHERE user_id = ?", args: [req.params.userId] });
+        res.json({ success: true, data: rs.rows });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/guests', async (req, res) => {
+    try {
+        const { userId, name } = req.body;
+        await db.execute({ sql: "INSERT INTO guests (user_id, name) VALUES (?, ?)", args: [userId, name] });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ==========================================
+// 9. RUTAS API: ALERTAS Y PRESUPUESTO
+// ==========================================
+
+app.post('/api/profile', async (req, res) => {
+    try {
+        const { userId, weddingDate, budgetLimit, estilos } = req.body;
+        await db.execute({
+            sql: `INSERT INTO wedding_profiles (user_id, wedding_date, budget_limit, estilos_preferidos) 
+                  VALUES (?, ?, ?, ?)
+                  ON CONFLICT(user_id) DO UPDATE SET 
+                  wedding_date=excluded.wedding_date, budget_limit=excluded.budget_limit, estilos_preferidos=excluded.estilos_preferidos`,
+            args: [userId, weddingDate, budgetLimit, estilos || '']
+        });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/budget/pay', async (req, res) => {
+    try {
+        const { id, amount } = req.body;
+        const current = await db.execute({ sql: "SELECT total_cost, paid_amount FROM budget WHERE id = ?", args: [id] });
+        if (current.rows.length === 0) return res.json({ success: false });
+
+        const item = current.rows[0];
+        const newPaid = (item.paid_amount || 0) + parseFloat(amount);
+        const newStatus = newPaid >= item.total_cost ? 'Pagado' : 'Pendiente';
+
+        await db.execute({
+            sql: "UPDATE budget SET paid_amount = ?, status = ? WHERE id = ?",
+            args: [newPaid, newStatus, id]
+        });
+        res.json({ success: true, newPaid, newStatus });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ==========================================
+// 10. CHATBOT IA (Multirole)
 // ==========================================
 
 app.post('/api/ia/chat', async (req, res) => {
-    const { messages, message, isNovia, userName, fileData, saveToInbox, summaryData, role } = req.body; 
+    const { messages, message, isNovia, userName, fileData, saveToInbox, summaryData, role } = req.body;
 
-    // Buzón de entrada
+    // A. Guardar en Inbox Planner (si aplica)
     if (saveToInbox && summaryData) {
         plannerInbox.push({
             id: Date.now(),
@@ -203,8 +423,7 @@ app.post('/api/ia/chat', async (req, res) => {
             category: summaryData.category || 'General',
             text: summaryData.text,
             user: userName || 'Usuario',
-            date: new Date().toISOString().split('T')[0],
-            fileSimulated: !!fileData
+            date: new Date().toISOString().split('T')[0]
         });
         return res.json({ success: true, response: "¡Listo! Información guardada en el Dashboard." });
     }
@@ -213,223 +432,38 @@ app.post('/api/ia/chat', async (req, res) => {
         let ultimoMensaje = "";
         if (messages && messages.length > 0) ultimoMensaje = messages[messages.length - 1].content;
         else if (message) ultimoMensaje = message;
-        else return res.json({ success: false, response: "¿Hola? No he recibido ningún mensaje." });
+        else return res.json({ success: false, response: "..." });
 
         let systemInstruction = "";
 
-        // Definición de Roles
-        if (role === 'planner' || role === 'admin') {
-            const datosNegocio = await obtenerDatosPlanner();
-            systemInstruction = `Eres el Asistente Ejecutivo de la Wedding Planner. Tienes acceso a: ${JSON.stringify(datosNegocio)}. Responde de forma profesional y ejecutiva.`;
-        } else if (isNovia || role === 'novia') {
-            systemInstruction = `Eres 'AF Virtual', asistente de la novia. Eres amable, entusiasta y ayudas a calmar nervios. Responde corto (tipo WhatsApp).`;
+        // B. Contexto según Rol
+        if (role === 'guest') {
+            systemInstruction = "Eres un asistente para invitados de una boda. Responde dudas sobre vestimenta, ubicación o regalos de forma amable. No des información financiera.";
+        } else if (role === 'planner' || role === 'admin') {
+            // Podríamos inyectar datos reales de BD aquí
+            systemInstruction = "Eres el Asistente Ejecutivo de la Wedding Planner. Responde de forma técnica y profesional.";
         } else {
-            systemInstruction = `Eres un asistente de bodas experto. Ayuda con dudas generales. Recomienda contactar a Andrea.`;
+            // Default: Novia
+            systemInstruction = "Eres 'AF Virtual', asistente de la novia. Eres amable, entusiasta, ayudas a calmar nervios y das tips de boda.";
         }
 
-        const promptParts = [{ text: systemInstruction }, { text: `Usuario dice: ${ultimoMensaje}` }];
-        if (fileData) promptParts.push(fileData, { text: "Analiza este archivo." });
+        const promptParts = [{ text: systemInstruction }, { text: `Usuario: ${ultimoMensaje}` }];
+        if (fileData) promptParts.push(fileData);
 
-        if (!chatModel) return res.json({ success: true, response: "La IA se está iniciando, intenta en unos segundos." });
+        if (!chatModel) return res.json({ success: true, response: "IA iniciando..." });
 
         const result = await chatModel.generateContent(promptParts);
-        const responseText = result.response.text();
-        
-        res.json({ success: true, response: responseText });
+        res.json({ success: true, response: result.response.text() });
 
     } catch (error) {
         console.error("Gemini Error:", error);
-        res.json({ success: true, response: "Tuve un pequeño problema técnico. ¿Me lo repites?" });
+        res.json({ success: true, response: "Tuve un problema de conexión. ¿Intenta de nuevo?" });
     }
 });
 
 // ==========================================
-// 6. RUTAS VARIAS Y LISTEN
+// START SERVER
 // ==========================================
-
-app.post('/api/login', (req, res) => {
-    const { email, password } = req.body;
-    const user = users.find(u => u.email === email && u.password === password);
-    if (user) res.json({ success: true, userId: user.id, role: user.role, name: user.full_name });
-    else res.status(401).json({ success: false, message: 'Credenciales incorrectas.' });
-});
-
-app.get('/api/dashboard-data', (req, res) => {
-    res.json({ inbox: plannerInbox });
-});
-
-// Función auxiliar para leer BD 
-async function obtenerDatosPlanner() {
-    try {
-        const [provResult, docResult] = await Promise.all([
-            db.execute("SELECT nombre, tipo, presupuesto, costo FROM proveedores"),
-            db.execute("SELECT nombre_archivo, tipo, url FROM documentos WHERE compartido_planner = 1")
-        ]);
-        return { proveedores: provResult.rows, documentos: docResult.rows };
-    } catch (err) {
-        console.error("Error obteniendo datos planner:", err);
-        return { proveedores: [], docs: [] };
-    }
-}
-
-// --- RUTAS DE INVITADOS (API) ---
-
-// 1. Obtener lista
-app.get('/api/guests/:userId', async (req, res) => {
-    try {
-        const { userId } = req.params;
-        const rs = await client.execute({
-            sql: "SELECT * FROM guests WHERE user_id = ?",
-            args: [userId]
-        });
-        res.json({ success: true, data: rs.rows });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-// 2. Guardar nuevo
-app.post('/api/guests', async (req, res) => {
-    try {
-        const { userId, name } = req.body;
-        await client.execute({
-            sql: "INSERT INTO guests (user_id, name) VALUES (?, ?)",
-            args: [userId, name]
-        });
-        res.json({ success: true });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-// 3. Borrar
-app.delete('/api/guests/:id', async (req, res) => {
-    try {
-        await client.execute({
-            sql: "DELETE FROM guests WHERE id = ?",
-            args: [req.params.id]
-        });
-        res.json({ success: true });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-// --- RUTA PARA REGISTRAR UN PAGO (ABONO) ---
-app.post('/api/budget/pay', async (req, res) => {
-    try {
-        const { id, amount } = req.body;
-        
-        // 1. Obtener el estado actual
-        const current = await client.execute({
-            sql: "SELECT total_cost, paid_amount FROM budget WHERE id = ?",
-            args: [id]
-        });
-        
-        if (current.rows.length === 0) return res.json({ success: false });
-        
-        const item = current.rows[0];
-        const newPaid = item.paid_amount + parseFloat(amount);
-        const newStatus = newPaid >= item.total_cost ? 'Pagado' : 'Pendiente';
-
-        // 2. Actualizar la base de datos
-        await client.execute({
-            sql: "UPDATE budget SET paid_amount = ?, status = ? WHERE id = ?",
-            args: [newPaid, newStatus, id]
-        });
-
-        res.json({ success: true, newPaid, newStatus });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-// ==========================================
-//SISTEMA DE ALERTAS
-app.get('/api/alerts/:userId', async (req, res) => {
-    try {
-        const { userId } = req.params;
-        const alerts = [];
-
-        // A. Obtener Configuración de la Novia
-        const profileRes = await client.execute({
-            sql: "SELECT * FROM wedding_profiles WHERE user_id = ?",
-            args: [userId]
-        });
-        const profile = profileRes.rows[0];
-
-        // Si no ha configurado perfil, no molestamos con alertas.
-        if (!profile) return res.json({ success: true, alerts: [] });
-
-        // B. Obtener Gastado Real
-        const budgetRes = await client.execute({
-            sql: "SELECT SUM(final_cost) as total FROM budget WHERE user_id = ?", 
-            args: [userId]
-        });
-        const gastado = budgetRes.rows[0]?.total || 0;
-
-        // --- REGLAS DEL SILENCIO (Solo activan si es grave) ---
-        
-        // Regla 1: Dinero (Solo avisa si supera el 90%)
-        const limite = profile.budget_limit || 1; 
-        const porcentaje = (gastado / limite) * 100;
-
-        if (porcentaje >= 100) {
-            alerts.push({
-                level: 'HIGH', // Rojo
-                title: 'Presupuesto Excedido',
-                msg: `Has superado tu límite de $${limite}.`
-            });
-        } else if (porcentaje >= 90) {
-            alerts.push({
-                level: 'MEDIUM', // Naranja
-                title: 'Presupuesto al Límite',
-                msg: `Atención: Te queda menos del 10% de tu presupuesto.`
-            });
-        }
-
-        // Regla 2: Tiempo (Solo avisa si faltan menos de 3 meses)
-        if (profile.wedding_date) {
-            const hoy = new Date();
-            const fechaBoda = new Date(profile.wedding_date);
-            const mesesFaltantes = (fechaBoda - hoy) / (1000 * 60 * 60 * 24 * 30);
-
-            if (mesesFaltantes < 3 && mesesFaltantes > 0) {
-                alerts.push({
-                    level: 'HIGH',
-                    title: 'Cuenta Regresiva Crítica',
-                    msg: "Faltan menos de 3 meses. Asegura proveedores pendientes."
-                });
-            }
-        }
-
-        res.json({ success: true, alerts });
-
-    } catch (e) {
-        console.error(e);
-        res.json({ success: false, error: e.message });
-    }
-});
-
-// --- GUARDAR PERFIL DE BODA (Fecha y Presupuesto) ---
-app.post('/api/profile', async (req, res) => {
-    try {
-        const { userId, weddingDate, budgetLimit } = req.body;
-
-        // Usamos INSERT OR REPLACE para que sirva tanto para crear como para actualizar
-        await client.execute({
-            sql: `INSERT OR REPLACE INTO wedding_profiles (user_id, wedding_date, budget_limit) 
-                  VALUES (?, ?, ?)`,
-            args: [userId, weddingDate, budgetLimit]
-        });
-
-        res.json({ success: true, message: "Perfil actualizado" });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ success: false, error: e.message });
-    }
-});
-
 app.listen(PORT, () => {
-    console.log(`\n✨ SERVIDOR PLANNER LISTO EN PUERTO: ${PORT}`);
+    console.log(`\n✨ SERVER CORRIENDO EN PUERTO: ${PORT}`);
 });
