@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { createClient } from '@libsql/client'; // Turso
+import { createClient } from '@libsql/client'; 
 
 // Carga el .env
 dotenv.config();
@@ -14,18 +14,16 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
 // ==========================================
-// 1. CONFIGURACIÓN BASE DE DATOS (TURSO)
-// ==========================================
+// 1. CONFIGURACIÓN BASE DE DATOS 
 
 const db = createClient({
     url: process.env.DB_URL || "file:local-fallback.db",
     authToken: process.env.DB_TOKEN
 });
 
-// Función para inicializar TODAS las tablas
 async function inicializarBaseDeDatos() {
     try {
-        // --- 1. Tabla Proveedores (Catálogo General) ---
+        // --- 1. Tabla Proveedores  ---
         await db.execute(`CREATE TABLE IF NOT EXISTS proveedores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL,
@@ -37,7 +35,7 @@ async function inicializarBaseDeDatos() {
             costo INTEGER
         )`);
 
-        // --- 2. Tabla Documentos (Con soporte para Eventos) ---
+        // --- 2. Tabla Documentos  ---
         await db.execute(`CREATE TABLE IF NOT EXISTS documentos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre_archivo TEXT,
@@ -127,24 +125,78 @@ if (!process.env.GEMINI_API_KEY) {
 } else {
     try {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        chatModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Modelo actualizado
+        chatModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); 
         console.log("✅ Gemini (IA) conectado.");
     } catch (error) {
         console.error("❌ Error conectando Gemini:", error);
     }
 }
 
-// ==========================================
-// 3. DATOS EN MEMORIA (Usuarios)
-// ==========================================
-// En producción, esto debería ir también a base de datos
+// 3. DATOS EN MEMORIA 
+
 const users = [
-    { id: 'planner1', email: 'planner@andreafigueroa.com', password: '123', role: 'planner', full_name: 'Andrea Figueroa' },
-    { id: 'novia1', email: 'novia@gmail.com', password: '123', role: 'novia', full_name: 'Erika Arroba' },
-    // ... tus otros usuarios ...
+    // --- ADMIN / PLANNER ---
+    { 
+        id: 'planner_andrea', 
+        email: 'planner@andreafigueroa.com', 
+        password: 'plannercustommer_123', 
+        role: 'planner', 
+        full_name: 'Andrea Figueroa' 
+    },
+
+    // --- PERFILES DE NOVIAS ---
+    { 
+        id: 'novia_erika', 
+        email: 'earrobalopez@gmail.com', 
+        password: 'Gabi9090', 
+        role: 'novia', 
+        full_name: 'Erika Arroba' 
+    },
+    { 
+        id: 'novia_maria', 
+        email: 'maria.gonzalez@boda.com', 
+        password: 'mariaBoda2026', 
+        role: 'novia', 
+        full_name: 'María González' 
+    },
+    { 
+        id: 'novia_isabella', 
+        email: 'isabella.rojas@future.com', 
+        password: 'isaYjuan2025', 
+        role: 'novia', 
+        full_name: 'Isabella Rojas' 
+    },
+    { 
+        id: 'novia_carla', 
+        email: 'carla.ruiz@wedding.com', 
+        password: 'ruizBoda99', 
+        role: 'novia', 
+        full_name: 'Carla Ruiz' 
+    },
+    { 
+        id: 'novia_sofia', 
+        email: 'sofia.martinez@email.com', 
+        password: 'sofiaLove23', 
+        role: 'novia', 
+        full_name: 'Sofía Martínez' 
+    },
+    { 
+        id: 'novia_valentina', 
+        email: 'valentina.lopez@dream.com', 
+        password: 'valeDiosa', 
+        role: 'novia', 
+        full_name: 'Valentina López' 
+    },
+    { 
+        id: 'novia_lucia', 
+        email: 'lucia.fer@mail.com', 
+        password: 'lucil120', 
+        role: 'novia', 
+        full_name: 'Lucía Fer' 
+    }
 ];
 
-let plannerInbox = []; // Buzón temporal en memoria
+let plannerInbox = []; 
 
 // ==========================================
 // 4. RUTAS API: AUTENTICACIÓN Y ADMIN
@@ -152,16 +204,25 @@ let plannerInbox = []; // Buzón temporal en memoria
 
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
+    // Búsqueda simple en el array de memoria
     const user = users.find(u => u.email === email && u.password === password);
-    if (user) res.json({ success: true, userId: user.id, role: user.role, name: user.full_name });
-    else res.status(401).json({ success: false, message: 'Credenciales incorrectas.' });
+    
+    if (user) {
+        res.json({ 
+            success: true, 
+            userId: user.id, 
+            role: user.role, 
+            name: user.full_name 
+        });
+    } else {
+        res.status(401).json({ success: false, message: 'Credenciales incorrectas.' });
+    }
 });
 
 // Admin: Obtener catálogo completo de proveedores
 app.get('/api/admin/proveedores', async (req, res) => {
     try {
         const result = await db.execute("SELECT * FROM proveedores");
-        // Procesamos 'estilo' para enviarlo como array si es necesario
         const data = result.rows.map(p => ({ ...p, estilo: p.estilo ? p.estilo.split(',') : [] }));
         res.json({ data: data });
     } catch (err) {
@@ -205,18 +266,16 @@ app.get('/api/events', async (req, res) => {
 app.post('/api/events', async (req, res) => {
     const ev = req.body;
     
-    // Validación básica
     if (!ev.title || !ev.start || !ev.brideId) {
         return res.status(400).json({ error: "Faltan datos obligatorios (title, start, brideId)" });
     }
 
     const id = ev.id || Date.now().toString();
     const target = ev.extendedProps?.target || ev.target || 'General';
-    const desc = ev.extendedProps?.description || ev.description || ''; // Corregido key
+    const desc = ev.extendedProps?.description || ev.description || '';
     const deadline = ev.extendedProps?.deadline || ev.deadline || '';
     const link = ev.extendedProps?.link || ev.link || '';
 
-    // UPSERT (Insertar o Actualizar si existe ID)
     const sql = `
         INSERT INTO events (id, title, start, color, brideId, target, deadline, description, link) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -269,7 +328,7 @@ app.post('/api/checklist', async (req, res) => {
 
 app.patch('/api/checklist/:id', async (req, res) => {
     try {
-        const { completed } = req.body; // true/false
+        const { completed } = req.body;
         await db.execute({
             sql: "UPDATE checklist SET is_completed = ? WHERE id = ?",
             args: [completed ? 1 : 0, req.params.id]
@@ -302,7 +361,7 @@ app.get('/api/recommendations/:userId', async (req, res) => {
         const provRes = await db.execute("SELECT * FROM proveedores");
         const proveedores = provRes.rows;
 
-        if (!perfil) return res.json({ success: true, data: proveedores }); // Sin filtro
+        if (!perfil) return res.json({ success: true, data: proveedores }); 
 
         // 3. Algoritmo
         const recomendados = proveedores.map(p => {
@@ -315,13 +374,11 @@ app.get('/api/recommendations/:userId', async (req, res) => {
             if (perfil.estilos_preferidos && p.estilo) {
                 const estilosNovia = perfil.estilos_preferidos.toLowerCase();
                 const estiloProv = p.estilo.toLowerCase();
-                // Búsqueda simple de string
                 if (estilosNovia.split(',').some(e => estiloProv.includes(e.trim()))) score += 50;
             }
             return { ...p, score };
         });
 
-        // Ordenar por score
         recomendados.sort((a, b) => b.score - a.score);
         res.json({ success: true, data: recomendados });
 
@@ -344,7 +401,6 @@ app.post('/api/proveedores/seleccionar', async (req, res) => {
 // 8. RUTAS API: DOCUMENTOS E INVITADOS
 // ==========================================
 
-// Subir documento (puede ser general o de evento)
 app.post('/api/documentos', async (req, res) => {
     try {
         const { userId, fileName, fileType, fileUrl, eventId } = req.body;
@@ -356,7 +412,6 @@ app.post('/api/documentos', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Invitados
 app.get('/api/guests/:userId', async (req, res) => {
     try {
         const rs = await db.execute({ sql: "SELECT * FROM guests WHERE user_id = ?", args: [req.params.userId] });
@@ -415,7 +470,7 @@ app.post('/api/budget/pay', async (req, res) => {
 app.post('/api/ia/chat', async (req, res) => {
     const { messages, message, isNovia, userName, fileData, saveToInbox, summaryData, role } = req.body;
 
-    // A. Guardar en Inbox Planner (si aplica)
+    // A. Guardar en Inbox Planner
     if (saveToInbox && summaryData) {
         plannerInbox.push({
             id: Date.now(),
@@ -438,13 +493,13 @@ app.post('/api/ia/chat', async (req, res) => {
 
         // B. Contexto según Rol
         if (role === 'guest') {
-            systemInstruction = "Eres un asistente para invitados de una boda. Responde dudas sobre vestimenta, ubicación o regalos de forma amable. No des información financiera.";
+            systemInstruction = "Eres un asistente para invitados de una boda. Responde dudas sobre vestimenta, ubicación o regalos de forma amable.";
         } else if (role === 'planner' || role === 'admin') {
-            // Podríamos inyectar datos reales de BD aquí
-            systemInstruction = "Eres el Asistente Ejecutivo de la Wedding Planner. Responde de forma técnica y profesional.";
+            systemInstruction = "Eres el Asistente Ejecutivo de la Wedding Planner Andrea Figueroa. Responde de forma técnica y profesional.";
         } else {
-            // Default: Novia
-            systemInstruction = "Eres 'AF Virtual', asistente de la novia. Eres amable, entusiasta, ayudas a calmar nervios y das tips de boda.";
+            // Contexto personalizado para cada Novia
+            const nombreNovia = userName || "Novia";
+            systemInstruction = `Eres 'AF Virtual', asistente personal de la novia ${nombreNovia}. Eres amable, entusiasta, ayudas a calmar nervios y das tips de boda personalizados.`;
         }
 
         const promptParts = [{ text: systemInstruction }, { text: `Usuario: ${ultimoMensaje}` }];
@@ -466,4 +521,5 @@ app.post('/api/ia/chat', async (req, res) => {
 // ==========================================
 app.listen(PORT, () => {
     console.log(`\n✨ SERVER CORRIENDO EN PUERTO: ${PORT}`);
+    console.log(`👥 Usuarios Enterprise cargados: ${users.length}`);
 });
