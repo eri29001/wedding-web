@@ -414,6 +414,10 @@ app.post('/api/budget/pay', async (req, res) => {
 // 10. CHATBOT IA (Multirole) - (Igual que antes)
 // ==========================================
 
+app.get('/api/alerts/:userId', (req, res) => {
+    res.json([]); 
+});
+
 app.post('/api/ia/chat', async (req, res) => {
     const { messages, message, isNovia, userName, fileData, saveToInbox, summaryData, role } = req.body;
 
