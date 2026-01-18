@@ -12,7 +12,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+    origin: '*', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json({ limit: '50mb' }));
 
 // ==========================================
@@ -143,7 +147,7 @@ if (!process.env.GEMINI_API_KEY) {
 } else {
     try {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        chatModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); 
+        chatModel = genAI.getGenerativeModel({ model: "gemini-pro" }); 
         console.log("✅ Gemini (IA) conectado.");
     } catch (error) {
         console.error("❌ Error conectando Gemini:", error);
