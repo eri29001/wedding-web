@@ -147,7 +147,7 @@ if (!process.env.GEMINI_API_KEY) {
 } else {
     try {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        chatModel = genAI.getGenerativeModel({ model: "gemini-pro" }); 
+        chatModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); 
         console.log("✅ Gemini (IA) conectado.");
     } catch (error) {
         console.error("❌ Error conectando Gemini:", error);
@@ -367,6 +367,32 @@ app.get('/api/guests/:userId', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+app.get('/api/profile/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const userRes = await query("SELECT name FROM users WHERE id = $1", [userId]);
+        const profileRes = await query("SELECT * FROM wedding_profiles WHERE user_id = $1", [userId]);
+        
+        if (userRes.rows.length > 0) {
+            const nombre = userRes.rows[0].name;
+            const perfil = profileRes.rows[0] || {};
+            
+            res.json({ 
+                success: true, 
+                user: { 
+                    name: nombre,
+                    wedding_date: perfil.wedding_date,
+                    budget: perfil.budget_limit
+                } 
+            });
+        } else {
+            res.status(404).json({ success: false, message: "Usuario no encontrado" });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.post('/api/guests', async (req, res) => {
     try {
         const { userId, name } = req.body;
@@ -473,16 +499,15 @@ app.post('/api/ia/chat', async (req, res) => {
 // ==========================================
 app.post('/api/guardar-perfil', async (req, res) => {
     try {
-        // Recibimos los datos 
+        // 1. Recibimos los datos
         const { userId, nombre, pareja, fecha_boda, presupuesto, estilo, avatarBase64 } = req.body;
 
-        // Validamos que venga el ID (necesario para saber a quién actualizar)
         if (!userId) {
             return res.status(400).json({ success: false, message: "Falta el ID de usuario" });
         }
 
-        // Guardamos en Postgres
-        const sql = `
+        // 2. Guardamos los datos de la boda en 'wedding_profiles'
+        const sqlPerfil = `
             INSERT INTO wedding_profiles (user_id, wedding_date, budget_limit, estilos_preferidos, partner_name, avatar)
             VALUES ($1, $2, $3, $4, $5, $6)
             ON CONFLICT(user_id) DO UPDATE SET 
@@ -492,11 +517,24 @@ app.post('/api/guardar-perfil', async (req, res) => {
                 partner_name = excluded.partner_name,
                 avatar = excluded.avatar
         `;
+        
+        await query(sqlPerfil, [userId, fecha_boda, presupuesto, estilo, pareja, avatarBase64]);
 
-        await query(sql, [userId, fecha_boda, presupuesto, estilo, pareja, avatarBase64]);
+        // 3. ¡NUEVO! Actualizamos también el nombre en la tabla 'users'
+        // Esto asegura que "Bienvenida, [Nombre]" funcione
+        if (nombre) {
+            const sqlUsuario = `UPDATE users SET name = $1 WHERE id = $2`;
+            await query(sqlUsuario, [nombre, userId]);
+        }
 
-        console.log(`✅ Perfil actualizado para: ${userId}`);
-        res.json({ success: true, message: "Perfil guardado correctamente" });
+        console.log(`✅ Perfil y nombre actualizados para: ${userId}`);
+        
+        // 4. Devolvemos el nombre en la respuesta para que el frontend lo use
+        res.json({ 
+            success: true, 
+            message: "Perfil guardado correctamente",
+            user: { name: nombre } // Devolvemos el nombre actualizado
+        });
 
     } catch (e) {
         console.error("Error guardando perfil:", e);
