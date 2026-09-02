@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andrea Figueroa | Wedding Planner</title>
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    
+    <link rel="stylesheet" href="styles.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo-container">
+            <img src="assets/logo.webp" alt="AF Logo"> 
+            <span>AF Wedding</span>
+        </div>
+        <nav>
+            <a href="#inicio" id="link-inicio" class="active">Inicio</a>
+            <a href="#acerca" id="link-acerca">Acerca de Mí</a>
+            <a href="#contacto" id="link-contacto">Contacto</a>
+            <a href="login.html" class="cta-btn">Acceder</a>
+        </nav>
+    </header>
+
+    <section id="inicio" class="hero-section">
+        <div class="hero-overlay">
+            <h1>Andrea Figueroa</h1>
+            <h2>Wedding & Event Planner</h2>
+            <p>Donde la planificación estructurada se encuentra con la perfección.</p>
+        </div>
+    </section>
+
+    <section id="acerca" class="section-padding">
+        <h2 style="text-align: center; margin-bottom: 30px;">Acerca de Mí</h2>
+
+        <div class="content-card reverse-layout reveal-on-scroll">
+            <div class="card-text">
+                <h3>Sobre Mí: Trayectoria</h3>
+                <p>¡Hola! Soy Andrea Figueroa. Con años de experiencia en la industria, mi pasión es transformar sueños en realidades estructuradas. Me especializo en reducir la incertidumbre de las novias mediante una planificación meticulosa.</p>
+            </div>
+            <div class="card-image-container">
+                <img src="assets/1.png" alt="Andrea Figueroa">
+            </div>
+        </div>
+
+        <div class="content-card reverse-layout reveal-on-scroll">
+            <div class="card-text">
+                <h3>Mi Misión</h3>
+                <p><i>Mi misión es acompañarte en este camino y asegurarme de que llegues al gran día con todo listo para que vivas el mejor día de tu vida. Quiero que cada esfuerzo que has dedicado valga la pena.</i></p>
+            </div>
+            <div class="card-image-container">
+                <img src="assets/2.png" alt="Misión">
+            </div>
+        </div>
+    </section>
+
+    <footer id="contacto" class="main-footer">
+        <div class="footer-container">
+            <div class="footer-info">
+                <div class="footer-logo-container">
+                    <img src="assets/logo.webp" alt="AF Logo" class="footer-logo">
+                </div>
+
+                <div class="contact-details">
+                    <p><i class="fas fa-envelope"></i> info@andreafigueroawep.com</p>
+                    <p><i class="fas fa-phone"></i> +593 99 074 0574</p>
+                    <p class="appointment-text">Agenda tu primera cita hoy.</p>
+                </div>
+            </div>
+
+            <div class="footer-links-social">
+                <p class="social-label">REDES</p>
+                <div class="social-icons">
+                    <a href="https://wa.me/593990740574" target="_blank" title="Contáctame por WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="https://www.instagram.com/wpandreafigueroa/" target="_blank" title="Sígueme en Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-copyright">
+            <p>&copy; 2025 Andrea Figueroa Wedding Planner. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <div id="chatbot-toggler">
+        <i class="fas fa-comment-dots"></i>
+    </div>
+
+    <div id="chatbot-container">
+        <div class="chatbot-header">
+            <div class="header-info">
+                <h3>AF Wedding Virtual</h3>
+                <p>Asistente Online</p>
+            </div>
+            <span class="close-chat-btn"><i class="fas fa-times"></i></span>
+        </div>
+        
+        <div id="chatbot-messages">
+            </div>
+        
+        <div id="typing-indicator" style="display: none; color: #888; font-size: 12px; margin: 10px; font-style: italic;">
+        AF Virtual está escribiendo...
+        </div>
+            
+        <div class="chatbot-input-area">
+            <input type="text" id="chatbot-input" placeholder="Escribe un mensaje..." required>
+            
+            <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    </div> <script src="script.js"></script> 
+    <script src="music.js"></script> 
+</body>
+</html>
