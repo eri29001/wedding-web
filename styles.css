@@ -1,0 +1,644 @@
+* {
+    box-sizing: border-box; 
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #D81B60; border-radius: 4px; }
+
+:root {
+    --accent: #D81B60; 
+    --primary: #FF9800; 
+    --text-light: #666; 
+    --text-main: #333; 
+    --bg-overlay: white; 
+    
+    /* TIPOGRAFÍAS */
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+
+    /* Colores Urgencia */
+    --urgency-alta: #D81B60; 
+    --urgency-media: #FF9800;
+    --urgency-baja: #F0A3B5; 
+    --urgency-all: #3F51B5; 
+    --urgency-completed: #A9A9A9;
+}
+
+body {
+    font-family: var(--font-body);
+    margin: 0;
+    padding: 0;
+    color: var(--text-main);
+    background-color: #fcfcfc;
+    scroll-behavior: smooth;
+    overflow-x: hidden; 
+}
+
+h1, h2, h3 { 
+    font-family: var(--font-heading); 
+    color: var(--accent); 
+    margin-top: 0; 
+}
+p { 
+    line-height: 1.6; 
+    color: var(--text-main); 
+    font-size: 1rem; 
+}
+
+/* 2. HEADER*/
+
+.main-header {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 8px 30px; 
+    background: rgba(255, 255, 255, 0.98); 
+    position: fixed; 
+    width: 100%; 
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+    height: 70px; 
+}
+
+/* Logo Header */
+.logo-container { 
+    display: flex; 
+    align-items: center; 
+    margin-right: auto; 
+}
+.logo-container img { 
+    height: 50px; 
+    width: auto; 
+}
+
+/* Navegación y Botón */
+.main-header nav { 
+    display: flex;
+    align-items: center;
+    gap: 20px; 
+}
+
+.main-header nav a { 
+    text-decoration: none; 
+    color: var(--text-light); 
+    font-weight: 500; 
+    font-size: 0.9rem; 
+    transition: 0.3s; 
+    white-space: nowrap;
+}
+
+.main-header nav a:hover, 
+.main-header nav a.active { 
+    color: var(--accent); 
+}
+
+.cta-btn {
+    padding: 8px 20px; 
+    background: var(--accent); 
+    color: white !important;
+    border-radius: 25px; 
+    font-size: 0.9rem;
+    margin-left: 15px; 
+}
+.cta-btn:hover { 
+    background: #ad1457; 
+    transform: translateY(-2px); 
+}
+
+/* 3. HERO SECTION */
+
+.hero-section {
+    height: 100vh; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    text-align: center;
+    background: url('assets/fondo.jpg') no-repeat center center/cover;
+    margin-top: 0;
+}
+
+.hero-overlay {
+    background: rgba(255, 255, 255, 0.92); 
+    padding: 40px 50px; 
+    border-radius: 4px;
+    backdrop-filter: blur(5px);
+    max-width: 800px; 
+    width: 90%;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.hero-overlay h1 { 
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+    font-size: 3rem; 
+    margin-bottom: 10px; 
+    color: #222; 
+    font-weight: 400; 
+    letter-spacing: 1px;
+    text-transform: none;
+}
+
+.hero-overlay h3 {
+    font-family: var(--font-body);
+    font-size: 1.1rem; 
+    color: var(--accent);
+    margin-top: 10px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.hero-overlay p {
+    font-style: italic; 
+    font-size: 1rem;
+    color: #666;
+    margin-top: 15px;
+}
+
+/* 4. SECCIONES (Acerca de, Misión) */
+
+.section-padding { padding: 80px 5%; } 
+#acerca { padding: 80px 5% 40px; } 
+
+#about-content-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* Animación Scroll */
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(50px); 
+    transition: all 0.8s ease-out; 
+}
+.reveal-on-scroll.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.content-card {
+    background: var(--bg-overlay); 
+    padding: 50px; 
+    margin: 40px auto; 
+    border-radius: 10px; 
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1); 
+    display: flex; 
+    align-items: center; 
+    gap: 50px;
+}
+
+.content-card.reverse-layout { flex-direction: row-reverse; }
+
+.content-card h2 {
+    font-size: 2.2rem; 
+    margin-bottom: 20px;
+    position: relative;
+    display: inline-block;
+}
+
+.content-card h2::after {
+    content: ''; position: absolute; width: 50px; height: 3px; 
+    background-color: var(--accent); bottom: -8px; left: 0;
+}
+
+.card-image-container img {
+    width: 320px; 
+    height: 420px; 
+    object-fit: cover;
+    border-radius: 4px; 
+    box-shadow: 15px 15px 0 var(--urgency-baja); 
+}
+
+/* 5. CONTACTO & FOOTER */
+
+.main-footer {
+    background-color: #1a1a1a; 
+    color: #ffffff;
+    padding: 60px 20px 10px; 
+    position: relative;
+}
+
+.footer-container {
+    max-width: 1000px; 
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    padding-bottom: 40px;
+    border-bottom: 1px solid #5f5f5f; 
+}
+
+.footer-info { display: flex; gap: 30px; text-align: left; align-items: center; }
+
+.footer-logo {
+    width: 120px; 
+    height: auto;
+    border: 2px solid var(--accent); 
+    border-radius: 50%;
+    padding: 5px;
+}
+
+.footer-logo-container span { display: none; }
+
+.contact-details p { margin: 5px 0; font-size: 1rem; color: #ccc; }
+.contact-details i { color: var(--accent); margin-right: 10px; }
+
+.footer-links-social {
+    text-align: right;
+}
+
+.social-label {
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #ffffff; 
+    letter-spacing: 2px;
+    font-size: 0.9em; 
+}
+
+.social-icons a {
+    font-size: 28px;
+    color: #fff;
+    margin-left: 15px; 
+    transition: 0.3s;
+}
+.social-icons a:hover { color: var(--accent); }
+
+.back-to-top {
+    display: none !important; 
+}
+
+.footer-copyright {
+    padding: 20px 0;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5); 
+    text-align: center;
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* 6. OTROS (Chatbot, Login, Tablas) */
+
+.login-body {
+    height: 100vh; display: flex; justify-content: center; align-items: center;
+    background: url('assets/fondo.jpg') center/cover;
+}
+.login-container {
+    background: white; padding: 40px; width: 90%; max-width: 380px;
+    border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); text-align: center;
+}
+.input-group { margin-bottom: 15px; text-align: left; position: relative; }
+.input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; }
+.toggle-password { position: absolute; right: 10px; top: 38px; cursor: pointer; color: #999; } 
+
+/*----------- Chatbot */
+
+/* Icono Flotante */
+#chatbot-toggler {
+    position: fixed;
+    bottom: 30px; 
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(216, 27, 96, 0.4);
+    z-index: 2000;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Animación de seguimiento cursor (ícono del chatbot)*/
+#chatbot-toggler:hover {
+    transform: translateY(-10px); 
+    box-shadow: 0 10px 20px rgba(216, 27, 96, 0.6); 
+}
+
+/* Ocultar chat cuando está abierto */
+#chatbot-toggler.hidden {
+    opacity: 0;
+    transform: scale(0.5) rotate(180deg); 
+    pointer-events: none;
+}
+
+/* CONTENEDOR PRINCIPAL DEL CHATBOT */
+
+#chatbot-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px; 
+    width: 380px;
+    height: 500px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    z-index: 1999;
+    overflow: hidden;
+    
+    /* Animación de entrada */
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.9) translateY(20px);
+    transform-origin: bottom right;
+    transition: all 0.3s ease;
+}
+
+#chatbot-container.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1) translateY(0);
+}
+
+/* CABECERA DE CHATBOT */
+.chatbot-header {
+    background: var(--accent);
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Texto del Header */
+.header-info h3 {
+    font-family: 'Playfair Display', serif; 
+    font-size: 1.2rem;
+    margin: 0;
+    color: white;
+    font-weight: 700;
+}
+.header-info p {
+    font-size: 0.8rem;
+    margin: 0;
+    opacity: 0.9;
+    color: white;
+}
+
+.close-chat-btn {
+    cursor: pointer;
+    font-size: 1.4rem;
+    transition: transform 0.2s;
+}
+.close-chat-btn:hover { transform: rotate(90deg); }
+
+/* BOTONES RÁPIDOS */
+.quick-actions-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; 
+    margin-top: 10px;
+    width: 100%;
+}
+
+.quick-btn {
+    background: #fff;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: 0.2s;
+    flex: 1 1 auto; 
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.quick-btn:hover {
+    background: var(--accent);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(216, 27, 96, 0.2);
+}
+
+.chatbot-header span {
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+/* Área de Mensajes */
+#chatbot-messages {
+    height: 350px;
+    padding: 15px;
+    overflow-y: auto; 
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) #f0f0f0;
+}
+
+/* ESTILO DE LOS MENSAJES */
+.message { 
+    padding: 12px 16px; 
+    border-radius: 18px; 
+    font-size: 0.95rem; 
+    max-width: 80%; 
+    line-height: 1.4;
+    position: relative;
+    word-wrap: break-word;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Mensaje del BOT (Gris claro) */
+.bot-message { 
+    background: #ffffff; 
+    color: #333; 
+    align-self: flex-start; 
+    border-bottom-left-radius: 4px; 
+    border: 1px solid #e0e0e0;
+}
+
+/* Mensaje del USUARIO (Rosa) */
+.user-message { 
+    background: var(--accent); 
+    color: white; 
+    align-self: flex-end; 
+    border-bottom-right-radius: 4px; 
+}
+
+/* Área de Input (Escribir) */
+.chatbot-input-area { 
+    padding: 15px; 
+    background: white;
+    border-top: 1px solid #eee; 
+    display: flex; 
+    align-items: center;
+    gap: 10px;
+}
+
+#chatbot-input { 
+    flex: 1; 
+    border: 1px solid #ddd; 
+    padding: 12px 15px; 
+    border-radius: 25px; 
+    outline: none;
+    font-family: var(--font-body);
+    transition: 0.3s;
+    background: #f8f8f8;
+}
+
+#chatbot-input:focus {
+    border-color: var(--accent);
+    background: white;
+}
+
+/* BOTÓN ENVIAR */
+#send-button { 
+    background-color: var(--accent); 
+    color: white; 
+    border: none; 
+    border-radius: 50%; 
+    width: 45px; 
+    height: 45px; 
+    cursor: pointer; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    transition: 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+#send-button:hover { 
+    background-color: #ad1457; 
+    transform: scale(1.05);
+}
+
+#send-button i {
+    font-size: 1.2rem; 
+    margin-left: -2px; 
+}
+
+/* Modales */
+
+.modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+.modal-content { background-color: #fff; margin: 10% auto; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px; }
+.close-button { float: right; font-size: 1.5rem; cursor: pointer; }
+.data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+.data-table th, .data-table td { padding: 10px; border-bottom: 1px solid #eee; }
+
+/* 7. VISTA DE MÓVIL */
+
+@media (max-width: 768px) {
+    
+    .main-header {
+        padding: 0 15px; 
+        height: 60px;
+    }
+    .logo-container img { height: 40px; }
+
+    /* Ocultar enlaces de texto en móvil, dejar solo botón Acceder */
+    .main-header nav a:not(.cta-btn) { display: none; }
+    
+    .cta-btn {
+        font-size: 0.8rem;
+        padding: 6px 15px;
+        margin-left: 0;
+    }
+
+    .hero-overlay { padding: 30px 20px; width: 95%; }
+    .hero-overlay h1 { font-size: 2.2rem; }
+
+    /* Ajuste Cards Móvil */
+    .content-card, .content-card.reverse-layout { 
+        flex-direction: column; 
+        padding: 30px 20px; 
+        gap: 20px;
+        height: auto !important; 
+    }
+
+    .card-image-container img {
+        width: 100%; 
+        height: auto; 
+        max-height: 350px;
+        margin-bottom: 15px;
+        box-shadow: 8px 8px 0 var(--urgency-baja);
+    }
+    
+    .content-card h2::after { left: 50%; transform: translateX(-50%); }
+    .content-card h2 { text-align: center; display: block; }
+    
+    /* Footer Móvil */
+    .footer-container { flex-direction: column; align-items: center; text-align: center; gap: 30px; }
+    .footer-info { flex-direction: column; align-items: center; }
+    .footer-logo { margin-bottom: 15px; }
+    .footer-links-social { text-align: center; }
+}
+
+/* NAVEGACIÓN */
+.main-header nav a {
+    position: relative; 
+    text-decoration: none;
+    color: #333; 
+    font-weight: 500;
+    padding-bottom: 5px; 
+    transition: color 0.3s ease;
+}
+
+.main-header nav a::after {
+    content: '';
+    position: absolute;
+    width: 0%; 
+    height: 3px; 
+    bottom: 0;
+    left: 0;
+    background-color: #D81B60;
+    transition: width 0.3s ease-in-out;
+}
+
+.main-header nav a:hover::after,
+.main-header nav a.active::after {
+    width: 100%; 
+}
+
+.main-header nav a:hover,
+.main-header nav a.active {
+    color: #D81B60; 
+}
+
+/* ANIMACIÓN DE ENTRADA (Tarjetas sección 'Acerca de mí') */
+.reveal-on-scroll {
+    opacity: 0; 
+    transform: translateY(50px); 
+    transition: all 1s ease-out; 
+    will-change: opacity, transform; 
+}
+
+.reveal-on-scroll.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.main-header nav .cta-btn::after {
+    display: none !important; 
+    content: none !important;
+    width: 0 !important;
+}
+
+.cta-btn:hover {
+    text-decoration: none !important;
+}
+
+.social-icons a:hover .fa-whatsapp {
+    color: #25D366 !important;
+}
+
+.social-icons a:hover .fa-instagram {
+    color: #E1306C !important; 
+}
