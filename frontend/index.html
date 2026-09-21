@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andrea Figueroa | Wedding Planner</title>
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo-container">
+            <img src="assets/logo.webp" alt="AF Logo"> 
+            <span>AF Wedding</span>
+        </div>
+        <nav>
+            <a href="#inicio" id="link-inicio" class="active">Inicio</a>
+            <a href="#acerca" id="link-acerca">Acerca de Mí</a>
+            <a href="#servicios" id="link-servicios">Servicios</a>
+            <a href="#contacto" id="link-contacto">Contacto</a>
+            <a href="index.html#login-section" class="cta-btn" id="btnAcceder">Acceder</a>
+        </nav>
+    </header>
+    
+    <section id="inicio" class="hero-section">
+        <div class="hero-overlay">
+            <h1>Andrea Figueroa</h1>
+            <h2>Wedding & Event Planner</h2>
+            <p>Donde la planificación estructurada se encuentra con la perfección.</p>
+        </div>
+    </section>
+
+    <!-- SECCIÓN ACERCA DE MÍ -->
+    <section id="acerca" class="section-padding">
+        <h2 style="text-align: center; margin-bottom: 30px;">Acerca de Mí</h2>
+
+        <div class="content-card reverse-layout reveal-on-scroll">
+            <div class="card-text">
+                <h3>Sobre Mí: Trayectoria</h3>
+                <p>¡Hola! Soy Andrea Figueroa. Con años de experiencia en la industria, mi pasión es transformar sueños en realidades estructuradas. Me especializo en reducir la incertidumbre de las novias mediante una planificación meticulosa.</p>
+            </div>
+            <div class="card-image-container">
+                <img src="assets/1.png" alt="Andrea Figueroa">
+            </div>
+        </div>
+
+        <div class="content-card reverse-layout reveal-on-scroll">
+            <div class="card-text">
+                <h3>Mi Misión</h3>
+                <p><i>Mi misión es acompañarte en este camino y asegurarme de que llegues al gran día con todo listo para que vivas el mejor día de tu vida. Quiero que cada esfuerzo que has dedicado valga la pena.</i></p>
+            </div>
+            <div class="card-image-container">
+                <img src="assets/2.png" alt="Misión">
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN DE SERVICIOS / CATÁLOGO (Entregable 04 de la Guía) -->
+    <section id="servicios" class="section-padding" style="background-color: #f9f6f0;">
+        <h2 style="text-align: center; margin-bottom: 30px;">Servicios & Paquetes</h2>
+        <div class="services-grid" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; padding: 0 20px;">
+            <div class="service-card" style="background: white; padding: 25px; border-radius: 8px; max-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <i class="fas fa-gem" style="font-size: 30px; color: #d4a373; margin-bottom: 15px;"></i>
+                <h3>Planificación Integral</h3>
+                <p>Nos encargamos de cada detalle desde el día uno: diseño del evento, gestión de presupuesto y coordinación total.</p>
+            </div>
+            <div class="service-card" style="background: white; padding: 25px; border-radius: 8px; max-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <i class="fas fa-calendar-check" style="font-size: 30px; color: #d4a373; margin-bottom: 15px;"></i>
+                <h3>Coordinación del Día B</h3>
+                <p>Supervisión profesional en el día de la boda para que la novia y la familia disfruten sin preocupaciones.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN FORMULARIO DE CONTACTO REAL (Entregable 05 de la Guía) -->
+    <section id="contacto" class="section-padding">
+        <h2 style="text-align: center; margin-bottom: 10px;">Contáctame</h2>
+        <p style="text-align: center; margin-bottom: 30px; color: #666;">Agenda tu primera consulta personalizada</p>
+        
+        <div class="contact-container" style="max-width: 600px; margin: 0 auto; padding: 0 20px;">
+            <form id="publicContactForm" style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="text" id="contactName" placeholder="Tu Nombre Completo" required style="padding: 12px; border: 1px solid #ccc; border-radius: 5px;">
+                <input type="email" id="contactEmail" placeholder="Correo Electrónico" required style="padding: 12px; border: 1px solid #ccc; border-radius: 5px;">
+                <input type="tel" id="contactPhone" placeholder="Teléfono / WhatsApp" style="padding: 12px; border: 1px solid #ccc; border-radius: 5px;">
+                <textarea id="contactMessage" rows="4" placeholder="Cuéntame sobre tu boda (Fecha estimada, número de invitados...)" required style="padding: 12px; border: 1px solid #ccc; border-radius: 5px;"></textarea>
+                
+                <button type="submit" id="btnSendContact" style="background-color: #d4a373; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                    Enviar Mensaje
+                </button>
+            </form>
+            <div id="contactSuccessMessage" style="display: none; text-align: center; color: green; margin-top: 15px; font-weight: bold;">
+                ✅ ¡Gracias por escribir! Te responderemos muy pronto.
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-info">
+                <div class="footer-logo-container">
+                    <img src="assets/logo.webp" alt="AF Logo" class="footer-logo">
+                </div>
+
+                <div class="contact-details">
+                    <p><i class="fas fa-envelope"></i> info@andreafigueroawep.com</p>
+                    <p><i class="fas fa-phone"></i> +593 99 074 0574</p>
+                    <p class="appointment-text">Agenda tu primera cita hoy.</p>
+                </div>
+            </div>
+
+            <div class="footer-links-social">
+                <p class="social-label">REDES</p>
+                <div class="social-icons">
+                    <a href="https://wa.me/593990740574" target="_blank" title="Contáctame por WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="https://www.instagram.com/wpandreafigueroa/" target="_blank" title="Sígueme en Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-copyright">
+            <p>&copy; 2026 Andrea Figueroa Wedding Planner. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- WIDGET DE CHATBOT IA POR ROLES (Invitado/Público) -->
+    <div id="chatbot-toggler">
+        <i class="fas fa-comment-dots"></i>
+    </div>
+
+    <div id="chatbot-container">
+        <div class="chatbot-header">
+            <div class="header-info">
+                <h3>AF Wedding Virtual</h3>
+                <p>Asistente Online</p>
+            </div>
+            <span class="close-chat-btn"><i class="fas fa-times"></i></span>
+        </div>
+        
+        <div id="chatbot-messages">
+            <div class="message bot-message">
+                ¡Hola! Soy el asistente virtual de Andrea Figueroa. ¿En qué te puedo ayudar hoy con tu evento?
+            </div>
+        </div>
+        
+        <div id="typing-indicator" style="display: none; color: #888; font-size: 12px; margin: 10px; font-style: italic;">
+            AF Virtual está escribiendo...
+        </div>
+            
+        <div class="chatbot-input-area">
+            <input type="text" id="chatbot-input" placeholder="Escribe un mensaje..." required>
+            <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- SCRIPTS DE FUNCIONALIDAD -->
+    <script src="script.js"></script> 
+    <script src="auth.js"></script>
+    <script src="music.js"></script> 
+
+    <!-- Lógica rápida para el envío del formulario de contacto real hacia el Backend -->
+    <script>
+        document.getElementById('publicContactForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSendContact');
+            btn.disabled = true;
+            btn.innerText = 'Enviando...';
+
+            const payload = {
+                name: document.getElementById('contactName').value,
+                email: document.getElementById('contactEmail').value,
+                phone: document.getElementById('contactPhone').value,
+                message: document.getElementById('contactMessage').value
+            };
+
+            try {
+                const res = await fetch('https://wedding-web-lygz.onrender.com/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    document.getElementById('publicContactForm').reset();
+                    document.getElementById('contactSuccessMessage').style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Error al enviar formulario:', err);
+                alert('Gracias por tu mensaje. Nos pondremos en contacto.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Enviar Mensaje';
+            }
+        });
+    </script>
+</body>
+</html>

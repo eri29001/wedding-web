@@ -1,0 +1,2330 @@
+/* ==========================================================================
+   1. VARIABLES & CONFIGURACIÓN BASE (:root)
+   ========================================================================== */
+:root {
+    /* --- Paleta Principal --- */
+    --primary-pink: #D81B60;
+    --hover-fuchsia: #C2185B;
+    --primary-purple: #8E24AA;
+    --hover-purple: #7B1FA2;
+    --primary-orange: #FB8C00;
+    --warning-orange: #FF9800; /* Agregado para utilitarios */
+    --primary-green: #43A047;
+    --danger-red: #E53935;
+    --info-blue: #1E88E5;
+
+    /* --- Paleta Pastel (Fondos y Textos Suaves) --- */
+    --pastel-pink-bg: #FCE4EC;
+    --pastel-pink-text: #880E4F;
+    --pastel-blue-bg: #E3F2FD;
+    --pastel-blue-text: #1565C0;
+    --pastel-green-bg: #E8F5E9;
+    --pastel-green-text: #2E7D32;
+    --pastel-purple-bg: #F3E5F5;
+    --pastel-purple-text: #6A1B9A;
+    --pastel-yellow-bg: #FFF8E1;
+    --pastel-yellow-text: #F57F17;
+
+    /* --- Neutros y Superficies --- */
+    --light-bg: #F4F7F6;
+    --white: #ffffff;
+    --surface-hover: #F8F9FA;
+    --border-color: #E0E0E0;
+    
+    /* --- Textos --- */
+    --text-dark: #2c3e50;
+    --text-body: #455A64;
+    --text-grey: #78909C;
+    --text-light: #B0BEC5;
+
+    /* --- Tipografía --- */
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Lato', sans-serif;
+
+    /* --- Sombras y Efectos --- */
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-md: 0 5px 15px rgba(0,0,0,0.08);
+    --shadow-lg: 0 15px 35px rgba(0,0,0,0.1);
+    --shadow-pink: 0 8px 20px rgba(216, 27, 96, 0.25);
+    
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --radius-pill: 50px;
+}
+
+/* ==========================================================================
+   2. RESET & ESTILOS GLOBALES
+   ========================================================================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--light-bg);
+    color: var(--text-body);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Scroll Lock Classes */
+body.modal-open, 
+body.stop-scrolling { overflow: hidden; padding-right: 5px; }
+
+/* Efecto desenfoque fondo global */
+.content-blurred {
+    filter: blur(5px) brightness(0.7);
+    transition: filter 0.3s ease;
+    pointer-events: none; user-select: none;
+}
+
+/* Scrollbar Personalizado */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: #ce93d8; border-radius: 4px; transition: background 0.3s; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary-pink); }
+
+/* Tipografía Básica */
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); color: var(--text-dark); margin-bottom: 0.5rem; line-height: 1.2; }
+a { text-decoration: none; color: inherit; transition: 0.3s; }
+ul { list-style: none; }
+
+/* ==========================================================================
+   3. CLASES UTILITARIAS & HELPERS (Fusionado)
+   ========================================================================== */
+.hidden { display: none !important; visibility: hidden !important; }
+.w-full { width: 100%; }
+.h-full-cover { width: 100%; height: 100%; object-fit: cover; }
+.full-width { width: 100%; grid-column: 1 / -1; }
+.pointer { cursor: pointer; }
+
+/* Flex Utilities */
+.d-flex { display: flex; }
+.flex-center-gap { display: flex; align-items: center; gap: 15px; }
+.flex-between-center { display: flex; justify-content: space-between; align-items: center; }
+.align-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.grid-full-width { grid-column: 1 / -1; margin-top: 0; }
+
+/* Text Utilities */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-muted { color: var(--text-grey) !important; } /* Unificado con #888 */
+.text-pink { color: var(--primary-pink); }
+.text-purple { color: var(--primary-purple); }
+.text-orange { color: var(--warning-orange); }
+.text-small { font-size: 0.9rem; }
+.font-bold { font-weight: 700; }
+
+/* Spacing */
+.gap-10 { gap: 10px; }
+.gap-15 { gap: 15px; }
+.mt-10 { margin-top: 10px; }
+.mt-20 { margin-top: 20px; }
+.mb-20 { margin-bottom: 20px; }
+.p-25 { padding: 25px; }
+
+/* ==========================================================================
+   4. UI KIT: BOTONES & INPUTS
+   ========================================================================== */
+/* Botones Base */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 10px 24px; border-radius: var(--radius-pill);
+    font-weight: 600; font-size: 0.95rem; cursor: pointer;
+    border: none; transition: all 0.3s ease; gap: 8px;
+    box-shadow: var(--shadow-sm);
+}
+.btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.btn:active { transform: translateY(0); }
+
+/* Variantes de Botones */
+.btn-primary { background: var(--primary-pink); color: white; }
+.btn-primary:hover { background: var(--hover-fuchsia); box-shadow: var(--shadow-pink); }
+
+.btn-secondary { background: var(--white); color: var(--text-dark); border: 1px solid var(--border-color); }
+.btn-secondary:hover { border-color: var(--primary-purple); color: var(--primary-purple); }
+
+.btn-ghost { 
+    background: transparent; color: var(--primary-pink); 
+    border: 2px solid var(--primary-pink); /* Mejorado del original */
+    box-shadow: none; 
+}
+.btn-ghost:hover { background: var(--primary-pink); color: white; transform: translateY(-2px); }
+
+.btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.btn-icon-danger { border: none; background: #ffebee; color: #c62828; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+.btn-icon-danger:hover { background: #ffcdd2; }
+
+/* Botones Específicos */
+.btn-logout { padding: 8px 15px; }
+.btn-tutorial { border-radius: 50%; width: 30px; height: 30px; padding: 0; display: flex; align-items: center; justify-content: center;}
+
+.btn-purple-centered {
+    display: flex; margin: 25px auto 0 auto; 
+    background: linear-gradient(135deg, var(--primary-purple), #AB47BC);
+    color: white; padding: 12px 40px; border-radius: 50px;
+    box-shadow: 0 4px 15px rgba(142, 36, 170, 0.3);
+    text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; width: fit-content;
+}
+.btn-purple-centered:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(142, 36, 170, 0.5);
+    background: linear-gradient(135deg, #AB47BC, var(--primary-purple));
+}
+
+.btn-contract {
+    background-color: white; border: 1px solid #CFD8DC; color: #546E7A;
+    font-size: 0.85rem; padding: 8px 16px; border-radius: 8px; 
+}
+.btn-contract:hover { border-color: var(--info-blue); color: var(--info-blue); background-color: #E3F2FD; }
+
+.btn-select-vendor {
+    background-color: var(--primary-pink); color: white;
+    box-shadow: 0 4px 10px rgba(216, 27, 96, 0.3); padding: 8px 20px; font-size: 0.9rem;
+}
+.btn-select-vendor:hover { background-color: var(--hover-fuchsia); box-shadow: 0 6px 15px rgba(216, 27, 96, 0.5); }
+
+/* Inputs Modernos */
+.form-group { margin-bottom: 20px; position: relative; display: flex; flex-direction: column; }
+.modern-label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--text-dark); }
+.modern-input, .modern-select, .modern-textarea {
+    width: 100%; padding: 12px 16px;
+    border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+    background: #FAFAFA; font-family: var(--font-body); font-size: 0.95rem;
+    transition: all 0.3s; outline: none;
+}
+.modern-input:focus, .modern-select:focus, .modern-textarea:focus {
+    background: var(--white); border-color: var(--primary-purple);
+    box-shadow: 0 0 0 3px rgba(142, 36, 170, 0.1);
+}
+
+/* =========================================
+   1. CHECKBOXES PERSONALIZADOS (ROSA)
+   ========================================= */
+.custom-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+    padding: 8px 0;
+    transition: all 0.2s;
+}
+
+.custom-checkbox input { display: none; } /* Ocultar default */
+
+/* El cuadrito visual */
+.checkbox-mark {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+}
+
+/* Estado Marcado (CHECKED) */
+.custom-checkbox input:checked + .checkbox-mark {
+    background: var(--primary-pink, #d81b60);
+    border-color: var(--primary-pink, #d81b60);
+    transform: scale(1.1);
+}
+
+/* El check (✔) */
+.checkbox-mark::after {
+    content: '✔';
+    color: white;
+    font-size: 14px;
+    display: none;
+    font-weight: bold;
+}
+.custom-checkbox input:checked + .checkbox-mark::after { display: block; }
+
+/* Hover */
+.custom-checkbox:hover .checkbox-mark { border-color: var(--primary-pink, #d81b60); }
+
+
+/* 2. MODAL DE PLANIFICACIÓN */
+
+.modal-overlay {
+    position: fixed;   /* Fijo sobre la pantalla */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semitransparente */
+    z-index: 9999;     /* Encima de todo */
+    
+    /* Lógica de visualización */
+    display: none;     
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(2px); 
+}
+
+/* Clase mágica para mostrarlo */
+.modal-overlay.active {
+    display: flex !important; 
+}
+
+/* Tarjeta Blanca */
+.modal-card-large {
+    background: white;
+    width: 90%;
+    max-width: 600px;
+    height: 80vh;      /* Altura fija para permitir scroll interno */
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Estructura interna */
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    flex: 1;           /* Ocupa el espacio sobrante */
+    overflow-y: auto;  /* SCROLL AQUÍ */
+    padding: 20px;
+    background-color: #fafafa;
+}
+
+.modal-footer {
+    padding: 15px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Animaciones y Botones */
+@keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.close-btn {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+.close-btn:hover { color: #d81b60; }
+
+/* Utilidad extra */
+.hidden { display: none !important; }
+
+/* ==========================================================================
+   5. LAYOUT: NAVBAR & HEADER
+   ========================================================================== */
+.navbar {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--white); padding: 15px 40px;
+    box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 1000;
+}
+.logo { font-size: 1.5rem; font-weight: 700; color: var(--primary-pink); letter-spacing: -0.5px; }
+
+.user-controls { display: flex; align-items: center; gap: 20px; }
+
+/* Botón Avatar en Navbar (Reemplaza estilos anteriores) */
+#navbar-avatar-btn {
+    cursor: pointer; user-select: none; width: 40px; height: 40px;
+    background-color: #ec4899; color: white; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; transition: background-color 0.3s;
+}
+#navbar-avatar-btn:hover { background-color: #db2777; }
+/* Soporte legacy por si acaso */
+.user-avatar-mini {
+    width: 35px; height: 35px; background: var(--pastel-purple-bg);
+    color: var(--primary-purple); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-weight: bold;
+}
+
+.logout-btn {
+    padding: 8px 20px; border: 1px solid #eee; border-radius: 30px;
+    background: white; color: var(--text-grey); font-size: 0.85rem;
+    cursor: pointer; transition: 0.3s;
+}
+.logout-btn:hover { border-color: var(--primary-pink); color: var(--primary-pink); background: var(--pastel-pink-bg); }
+
+/* ==========================================================================
+   6. DASHBOARD PRINCIPAL Y PROGRESO
+   ========================================================================== */
+.dashboard-container { max-width: 1280px; margin: 40px auto; padding: 0 25px 100px 25px; }
+
+.welcome-header { text-align: center; margin-bottom: 50px; }
+.welcome-header h1 { font-size: 2.8rem; margin-bottom: 15px; color: var(--text-dark); }
+.subtitle { color: var(--text-grey); font-size: 1.1rem; }
+
+/* --- Caja de Progreso Principal --- */
+.progress-white-box {
+    background: var(--white); padding: 30px 40px; border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md); max-width: 850px; margin: 0 auto 40px auto;
+    position: relative; border: 1px solid rgba(0,0,0,0.02);
+}
+.progress-header-info { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: 700; color: var(--text-body); }
+
+.barra-background { background: #f1f3f5; height: 16px; width: 100%; border-radius: 10px; position: relative; } /* overflow eliminado para que se vea el icono fuera si es necesario, pero controlado */
+
+.barra-relleno {
+    background: linear-gradient(90deg, #F48FB1, var(--primary-pink));
+    height: 100%; width: 0%; border-radius: 10px;
+    transition: width 1.8s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative; /* Clave para posicionar el icono */
+}
+/* Efecto de brillo en la barra */
+.barra-relleno::after {
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%, transparent);
+    background-size: 20px 20px; opacity: 0.3; border-radius: 10px;
+}
+
+/* --- ICON FLOR--- */
+.icono-flor {
+    position: absolute;
+    right: -25px; 
+    top: 50%;
+    transform: translateY(-50%);
+    background: white;
+    border-radius: 50%;
+    width: 50px; 
+    height: 50px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    display: flex; align-items: center; justify-content: center;
+    border: 3px solid var(--white);
+    z-index: 5;
+}
+.emoji-progreso { font-size: 1.5rem; }/* 1. El riel gris del fondo */
+.barra-background {
+    width: 100%;
+    height: 12px;           /* Altura de la barra */
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    margin-top: 25px;       /* Espacio para que la flor no choque arriba */
+    margin-bottom: 10px;
+    
+    /* CRUCIAL: Esto permite que la flor se "salga" de la caja */
+    position: relative !important;
+    overflow: visible !important; 
+}
+
+/* 2. El relleno de color (que se mueve) */
+.barra-relleno {
+    height: 100%;
+    background: linear-gradient(90deg, #EC407A, #D81B60); /* Degradado rosa */
+    border-radius: 10px;
+    transition: width 1s ease-in-out;
+    
+    /* CRUCIAL: Esto sirve de ancla para la flor */
+    position: relative !important; 
+}
+
+/* 3. La Flor Flotante (Icono) */
+.icono-flor {
+    position: absolute !important;
+    right: -20px !important; /* Ajustado para centrarlo justo en la punta */
+    top: 50%;
+    transform: translateY(-50%); /* Centrado vertical perfecto */
+    
+    width: 40px;  /* Tamaño de la burbuja */
+    height: 40px;
+    background: white;
+    border-radius: 50%;
+    
+    /* Estética */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Sombrita para relieve */
+    border: 3px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* 4. El Emoji dentro */
+.emoji-progreso {
+    font-size: 1.2rem;
+    line-height: 1;
+    display: block; 
+}
+
+/* --- Botones Calificación --- */
+/* --- TARJETA DE CELEBRACIÓN (Al 100%) --- */
+
+/* Estilo del contenedor principal */
+.celebration-card {
+    background: linear-gradient(135deg, #fff0f6 0%, #ffffff 100%);
+    border: 1px solid #f8bbd0;
+    border-radius: 20px;
+    padding: 30px;
+    margin: 30px auto; /* Centrado vertical y horizontal */
+    max-width: 700px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(216, 27, 96, 0.15);
+    animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Tipografía */
+.celebration-content h3 {
+    color: var(--primary-pink, #d81b60);
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.celebration-content p {
+    color: #666;
+    margin-bottom: 25px;
+    font-size: 1.1rem;
+}
+
+/* Contenedor de botones (Flexbox) */
+.header-buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* Botón Principal (Brillante) */
+.btn-glow {
+    background: var(--primary-pink, #d81b60);
+    color: white;
+    padding: 12px 28px;
+    border-radius: 50px;
+    font-weight: 600;
+    border: none;
+    box-shadow: 0 4px 15px rgba(216, 27, 96, 0.4);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+}
+
+.btn-glow:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(216, 27, 96, 0.6);
+}
+
+/* Botón Secundario (Borde) */
+.btn-outline {
+    background: transparent;
+    color: var(--primary-pink, #d81b60);
+    border: 2px solid var(--primary-pink, #d81b60);
+    padding: 10px 26px;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+}
+
+.btn-outline:hover {
+    background: var(--primary-pink, #d81b60);
+    color: white;
+}
+
+/* Animación de entrada */
+@keyframes popUp {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Clase utilitaria obligatoria */
+.hidden {
+    display: none !important;
+}
+
+/* --- Contador (Countdown) --- */
+.countdown-wrapper { margin-bottom: 20px; text-align: center; animation: fadeIn 0.8s ease; }
+.countdown-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: #888; font-weight: 600; margin-bottom: 10px; }
+.countdown-timer { display: flex; justify-content: center; gap: 12px; }
+
+.time-box {
+    background: white; min-width: 55px; padding: 8px 10px;
+    border-radius: 10px; border: 1px solid rgba(255, 182, 193, 0.5);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    display: flex; flex-direction: column; align-items: center;
+}
+.time-box .number { font-family: serif; font-size: 1.4rem; font-weight: 700; color: #d63384; line-height: 1.1; }
+.time-box .label { font-size: 0.6rem; text-transform: uppercase; color: #666; margin-top: 4px; }
+
+/* ==========================================================================
+   7. ESTRUCTURA GRID Y CARDS
+   ========================================================================== */
+.dashboard-grid { display: grid; grid-template-columns: 2.2fr 1fr; gap: 30px; }
+.right-column { display: flex; flex-direction: column; gap: 30px; }
+
+.card {
+    background: var(--white); border-radius: var(--radius-lg); padding: 30px;
+    box-shadow: var(--shadow-sm); border: 1px solid #f0f0f0;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: fit-content;
+}
+.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+
+.card-header-clean { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+.card-header-clean h2 { font-size: 1.4rem; font-weight: 700; color: #333; display: flex; align-items: center; gap: 10px; }
+
+/* --- Secciones Coloreadas (Borde + Título) --- */
+.section-blue { border-top: 4px solid var(--info-blue); }
+.section-blue .card-header-clean h2 { color: var(--info-blue); }
+
+.section-purple { border-top: 4px solid var(--primary-purple); }
+.section-purple .card-header-clean h2 { color: var(--primary-purple); }
+
+.section-orange { border-top: 4px solid var(--primary-orange); }
+.section-orange .card-header-clean h2 { color: var(--primary-orange); }
+
+.section-pink { border-top: 4px solid var(--primary-pink); }
+.section-pink .card-header-clean h2 { color: var(--primary-pink); }
+
+.section-green { border-top: 4px solid var(--primary-green); }
+.section-green .card-header-clean h2 { color: var(--primary-green); }
+
+/* ==========================================================================
+   8. COMPONENTE: CALENDARIO & EVENTOS
+   ========================================================================== */
+.help-circle-btn {
+    background: #f5f5f5; border: none; width: 32px; height: 32px; border-radius: 50%;
+    color: #888; font-weight: bold; cursor: pointer; transition: 0.2s;
+}
+.help-circle-btn:hover { background: var(--primary-pink); color: white; }
+
+.pastel-filters-container { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.filter-pill {
+    padding: 8px 18px; border-radius: 20px; font-size: 0.9rem; cursor: pointer;
+    font-weight: 600; background: #F8F9FA; color: var(--text-grey); border: none; transition: 0.2s;
+}
+.filter-pill.active { background: #37474F; color: white; }
+/* Filtros Colorizados */
+.pill-green:hover { background: var(--pastel-green-bg); color: var(--pastel-green-text); }
+.pill-red:hover { background: var(--pastel-pink-bg); color: var(--pastel-pink-text); }
+.pill-yellow:hover { background: var(--pastel-yellow-bg); color: var(--pastel-yellow-text); }
+.pill-blue:hover { background: var(--pastel-blue-bg); color: var(--pastel-blue-text); }
+
+#calendar { max-height: 600px; font-family: var(--font-body); }
+.fc-toolbar-title { font-size: 1.2rem !important; font-family: var(--font-heading); }
+.fc-event { border: none !important; border-radius: 6px !important; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+/* 9. COMPONENTE: INVITADOS & PRESUPUESTO*/
+
+/* INVITADOS */
+.guests-widget-container {
+    background: #ffffff;
+    border-radius: 20px;      
+    padding: 30px 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06); 
+    border: 1px solid #f0f0f0;
+    text-align: center;       
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.guests-widget-container:hover {
+    transform: translateY(-5px); 
+}
+
+/* 2.  Título  */
+.card-header-clean h2 {
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 700;
+    margin: 0 0 20px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex; align-items: center; gap: 10px; justify-content: center;
+}
+
+.card-header-clean h2 i {
+    color: #8E24AA; 
+    font-size: 1.3rem;
+}
+
+/* 3. El Círculo de Datos */
+.guest-circle-wrap {
+    margin: 10px auto 20px auto;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: conic-gradient(#E1BEE7 0%, #F3E5F5 100%); 
+    padding: 6px; /* Espacio para el borde */
+    box-shadow: 0 5px 15px rgba(142, 36, 170, 0.15);
+}
+
+.guest-circle-inner {
+    width: 100%;
+    height: 100%;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* El Número Grande */
+.guest-count-big {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #8E24AA; 
+    line-height: 1;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* La etiqueta "Confirmados" */
+.guest-label-small {
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+/* 4. Texto "Total Esperado" */
+.guest-stats-text {
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 15px;
+    background: #FAFAFA;
+    padding: 5px 15px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.guest-stats-text .font-bold {
+    color: #333;
+    font-weight: 700;
+}
+
+/*Boton 'ver invitados*/
+
+.btn-guests-action {
+    background: transparent !important;
+    border: none !important;
+    color: #8E24AA !important;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 5px 10px;
+    transition: all 0.3s;
+    outline: none;
+}
+
+.btn-guests-action::after {
+    content: ' \f061'; 
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    margin-left: 5px;
+    font-size: 0.8em;
+    transition: margin-left 0.3s;
+}
+
+.btn-guests-action:hover {
+    color: #BA68C8 !important;
+}
+
+.btn-guests-action:hover::after {
+    margin-left: 10px; 
+}
+
+.guests-widget-container .mt-20 {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.guests-widget-container .btn-ghost {
+    width: 100%;
+    padding: 12px;
+    background-color: #fff;
+    border: 2px dashed #D1C4E9; 
+    color: #7E57C2;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.guests-widget-container .btn-ghost:hover {
+    background-color: #F3E5F5;
+    border-color: #8E24AA;
+    color: #8E24AA;
+    transform: translateY(-2px);
+}
+
+/* Eliminar invitado */
+/* Alineación de la celda de acciones */
+.actions-cell {
+    text-align: center;
+    white-space: nowrap; /* Que los botones no se bajen de línea */
+}
+
+/* Estilo del Botón de Eliminar */
+.btn-action-delete {
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #ef5350; /* Rojo suave */
+    padding: 8px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Efecto Hover (Al pasar el mouse) */
+.btn-action-delete:hover {
+    background-color: #ffebee; /* Fondo rojizo muy claro */
+    color: #d32f2f; /* Rojo intenso */
+    transform: scale(1.1); /* Crece un poquito */
+    box-shadow: 0 2px 5px rgba(211, 47, 47, 0.2);
+}
+
+/* Opcional: Si quieres agregar un botón de editar al lado en el futuro */
+.badge-group {
+    background: #f3e5f5;
+    color: #8e24aa;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* PRESUPUESTO */
+/* =========================================
+   WIDGET PRESUPUESTO (Estilo Financiero Moderno)
+   ========================================= */
+
+/* 1. La Tarjeta (Base consistente con Invitados) */
+.budget-card {
+    background: #ffffff;
+    border-radius: 20px;       /* Mismo redondeado que Invitados */
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(255, 111, 0, 0.08); /* Sombra anaranjada muy sutil */
+    border: 1px solid #FFF3E0; /* Borde crema suave */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 200px; /* Asegura altura visual */
+}
+
+.budget-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(255, 111, 0, 0.12);
+}
+
+/* 2. El Encabezado */
+.budget-card .card-header-clean {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Título e Icono */
+.budget-card .text-orange {
+    font-size: 1.1rem;
+    color: #333 !important; /* Texto oscuro para elegancia */
+    margin: 0;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex; align-items: center; gap: 10px;
+}
+
+.budget-card .text-orange i {
+    color: #FF6F00; /* Naranja fuerte para el ícono */
+    font-size: 1.3rem;
+    background: #FFF3E0; 
+    padding: 8px;
+    border-radius: 10px;
+}
+
+/* 3. El Botón "Ver" */
+.budget-card .btn-ghost {
+    background-color: #FFF8E1;
+    color: #FF8F00;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 6px 15px;
+    border-radius: 20px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.budget-card .btn-ghost:hover {
+    background-color: #FF6F00;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* 4. El Número Gigante */
+.budget-big-display {
+    text-align: center;
+    margin: 10px 0 25px 0;
+    display: flex;
+    align-items: baseline; 
+    justify-content: center;
+    gap: 5px;
+}
+
+.budget-big-display .currency {
+    font-size: 1.8rem;
+    color: #FFB74D;
+    font-weight: 600;
+    transform: translateY(-5px); 
+}
+
+.budget-big-display #budget-total {
+    font-size: 3.2rem;
+    font-weight: 800;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #E65100, #FF9800);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: #E65100;
+}
+
+/* 5. Barra de Progreso Moderna */
+.barra-background {
+    width: 100%;
+    height: 12px;
+    background-color: #F5F5F5; 
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); 
+}
+
+.budget-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #FFCA28, #FF6F00); /* Degradado Amarillo a Naranja */
+    border-radius: 10px;
+    width: 0%; /* Se llenará con JS */
+    transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); /* Animación muy suave */
+    position: relative;
+}
+
+/* ESTILO INTERNO PRESUPUESTO*/
+
+/* 1. Encabezado del Modal (El Título Rosa) */
+.budget-modal-header {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 20px;
+}
+
+.budget-modal-header h2 {
+    font-family: 'Playfair Display', serif; /* O tu fuente elegante */
+    color: #EC407A; /* Rosa fuerte */
+    font-size: 1.8rem;
+    margin: 0;
+}
+
+/* 2. Botones de Filtro (Estilo "Píldora") */
+.filter-buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 25px;
+    background: #F8F9FA;
+    padding: 5px;
+    border-radius: 50px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.filter-btn {
+    border: none;
+    background: transparent;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+    color: #333;
+    background: rgba(0,0,0,0.05);
+}
+
+/* Estado Activo (Cuando está seleccionado) */
+.filter-btn.active {
+    background-color: #333; /* O usa #8E24AA para morado */
+    color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* 3. La Tabla de Datos */
+.budget-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px; /* Espacio entre filas */
+}
+
+/* Encabezados de Columna */
+.budget-table th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #999;
+    letter-spacing: 1px;
+    font-weight: 700;
+    padding: 0 15px 10px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Filas de la tabla */
+.budget-table tr.item-row {
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.budget-table tr.item-row:hover {
+    transform: scale(1.01); /* Efecto sutil de zoom */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    z-index: 10;
+    position: relative;
+}
+
+.budget-table td {
+    padding: 15px;
+    border-top: 1px solid #f9f9f9;
+    border-bottom: 1px solid #f9f9f9;
+    color: #444;
+}
+
+/* Primera y última celda redondeadas */
+.budget-table td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-left: 1px solid #f9f9f9; font-weight: 600; }
+.budget-table td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-right: 1px solid #f9f9f9; }
+
+/* Números (Dinero) */
+.budget-table td:nth-child(2), 
+.budget-table td:nth-child(3) {
+    font-family: 'Courier New', monospace; /* Para alinear números */
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+/* 4. Badges (Etiquetas de Estado) Mejoradas */
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-paid {
+    background-color: #E8F5E9; /* Verde menta muy suave */
+    color: #2E7D32;            /* Verde bosque */
+    border: 1px solid #C8E6C9;
+}
+
+.status-pending {
+    background-color: #FFF3E0; /* Crema */
+    color: #EF6C00;            /* Naranja quemado */
+    border: 1px solid #FFE0B2;
+}
+
+/* 5. Footer (Total Asignado) */
+.budget-footer-total {
+    margin-top: 25px;
+    padding: 20px;
+    background: linear-gradient(to right, #fafafa, #f5f5f5);
+    border-radius: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #eee;
+}
+
+.budget-footer-total span:first-child {
+    font-size: 1rem;
+    color: #666;
+    font-weight: 600;
+}
+
+.budget-footer-total .total-amount {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #333;
+    background: linear-gradient(135deg, #333 0%, #000 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ==========================================================================
+   10. COMPONENTE: PROVEEDORES
+   ========================================================================== */
+.vendors-split-container {
+    grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 25px; margin-top: 20px;
+}
+
+/* Tarjeta de Proveedor */
+.vendor-item {
+    background: white; border-radius: var(--radius-md); padding: 20px;
+    box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
+    transition: all 0.3s ease; position: relative; overflow: hidden;
+}
+.vendor-item:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--pastel-pink-bg); }
+.vendor-item::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+    background: var(--primary-pink); opacity: 0; transition: 0.3s;
+}
+.vendor-item:hover::before { opacity: 1; }
+
+.vendor-icon-circle {
+    width: 50px; height: 50px; background: var(--light-bg); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: #555;
+    margin-bottom: 15px;
+}
+
+.vendor-name-link { font-size: 1.1rem; color: var(--text-dark); cursor: pointer; font-weight: 700; transition: color 0.2s; display: block; margin-bottom: 5px; }
+.vendor-name-link:hover { color: var(--primary-pink); text-decoration: underline; }
+
+.vendor-category { font-size: 0.85rem; color: var(--text-grey); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+
+/* Acciones Proveedor */
+.vendor-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f5f5f5; }
+.vendor-status { font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 4px; }
+.status-hired { background: var(--pastel-green-bg); color: var(--pastel-green-text); }
+.status-pending { background: var(--pastel-yellow-bg); color: var(--pastel-yellow-text); }
+
+/* --- PERFIL DE PROVEEDOR (EN MODAL) --- */
+.provider-profile-header { text-align: center; margin-bottom: 30px; }
+.provider-avatar {
+    width: 90px; height: 90px; background: var(--pastel-purple-bg);
+    color: var(--primary-purple); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem; margin: 0 auto 15px auto; border: 4px solid white;
+    box-shadow: var(--shadow-sm);
+}
+.provider-badges { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+.badge { padding: 5px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+.badge.match { background: #E8F5E9; color: #2E7D32; }
+
+/* Stats Bars */
+.stat-row-modern { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+.stat-label { width: 100px; font-size: 0.9rem; font-weight: 600; color: #666; }
+.stat-bar-container { flex: 1; height: 10px; background: #f0f0f0; border-radius: 10px; overflow: hidden; }
+.stat-bar-value { height: 100%; border-radius: 10px; background: var(--primary-purple); }
+.stat-number { font-weight: bold; font-size: 0.9rem; width: 40px; text-align: right; }
+
+/* Estrellas Calificación */
+.rate-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f9f9f9; }
+.stars-container .star { font-size: 1.6rem; color: #e0e0e0; cursor: pointer; transition: 0.2s; margin-left: 5px; }
+.stars-container .star:hover, .stars-container .star.active { color: #FFC107; transform: scale(1.2); }
+
+/* Upload Zone */
+.upload-zone-container { 
+    border: 2px dashed #e0e0e0; border-radius: 15px; padding: 30px; 
+    text-align: center; transition: 0.3s; background: #fafafa; cursor: pointer;
+}
+.upload-zone-container:hover { border-color: var(--primary-purple); background: #f3e5f5; }
+.upload-icon { font-size: 2.5rem; color: var(--primary-purple); margin-bottom: 10px; display: block; }
+
+.file-card { 
+    display: flex; align-items: center; background: white; border: 1px solid #ddd; 
+    border-radius: 10px; padding: 12px; box-shadow: var(--shadow-sm); margin-top: 15px; 
+}
+.file-icon { font-size: 1.8rem; color: #D32F2F; margin-right: 15px; }
+.file-details { text-align: left; flex: 1; }
+.file-name { font-weight: 600; font-size: 0.9rem; display: block; }
+.file-size { font-size: 0.75rem; color: #888; }
+
+/* Tablas Modernas */
+.modern-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.modern-table th { 
+    text-align: left; padding: 15px 20px; color: #777; font-size: 0.8rem; 
+    text-transform: uppercase; font-weight: 700; background: #fcfcfc; border-bottom: 2px solid #f0f0f0; 
+}
+.modern-table td { padding: 15px 20px; border-bottom: 1px solid #f5f5f5; color: #444; font-size: 0.95rem; vertical-align: middle; }
+.modern-table tr:hover td { background: #fafafa; }
+
+.status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; display: inline-block; }
+.status-badge.paid { background: #E8F5E9; color: #2E7D32; }
+.status-badge.pending { background: #FFF8E1; color: #F57F17; }
+.status-badge.sent { background: #E3F2FD; color: #1565C0; }
+
+/* ==========================================================================
+   11. MODALES (SISTEMA UNIFICADO & COMPATIBILIDAD)
+   ========================================================================== */
+
+/* A. Overlay Base */
+.custom-modal, .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 1000;
+    display: flex; justify-content: center; align-items: center;
+    background: rgba(30, 30, 40, 0.7); backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+/* Activación */
+.custom-modal:not(.hidden) { opacity: 1; pointer-events: all; }
+.modal-overlay { animation: fadeInOverlay 0.3s forwards; } /* Legacy support */
+
+/* B. Tipos de Fondos Específicos */
+#modal-profile { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 2000; }
+#modal-cropper { background: rgba(0, 0, 0, 0.95) !important; z-index: 3000; }
+
+/* C. Contenedor del Modal (Unified) */
+.modal-content-modern {
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    /* Evita que se vea borroso por transformaciones */
+    transform: translate(0, 0); 
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Modificadores de Tamaño */
+.large-modal { width: 90%; max-width: 900px; }
+.modal-card-cropper { width: auto !important; max-width: 95vw !important; max-height: 95vh; }
+.video-modal-size { width: 95%; max-width: 700px; padding: 0; background: #000; }
+
+/* D. Headers de Modal */
+.modal-header-modern {
+    padding: 15px 25px; background: #fdf2f8; border-bottom: 1px solid #fce7f3;
+    display: flex; justify-content: space-between; align-items: center;
+}
+/* Clase utilitaria solicitada */
+.modal-header-dark { background: #1a1a1a; border-bottom: 1px solid #333; color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; }
+
+.modal-header-modern h3 { color: #ec4899; margin: 0; font-size: 1.2rem; }
+.close-modal-modern, .modal-close-white { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+.close-modal-modern { color: #888; }
+.modal-close-white { color: white; }
+
+/* E. Cuerpos de Modal */
+.modal-body-scrollable { padding: 25px; overflow-y: auto; }
+.modal-body-padded { padding: 15px 30px 0 30px; display: flex; gap: 10px; } /* Utilitario */
+.modal-search-bar { display: flex; gap: 10px; flex: 1; }
+
+/* Video Container */
+/* =========================================
+   ESTILO DEFINITIVO: VIDEO CINE / APP MODERN
+   ========================================= */
+
+/* 1. LA CAJA PRINCIPAL (Grande y Negra) */
+#modal-video .modal-content-modern.video-style {
+    max-width: 900px !important; /* Ancho Cine */
+    width: 95% !important;
+    background-color: #000 !important;
+    border-radius: 12px;
+    overflow: hidden; 
+    border: 1px solid #333; /* Borde sutil */
+}
+
+/* 2. LA BARRA DE TÍTULO (Negra, Alta y Centrada) */
+#modal-video .header-black {
+    background-color: #000000 !important;
+    border-bottom: 1px solid #333;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center; /* ESTO CENTRA EL TÍTULO */
+    
+    position: relative; /* CRUCIAL para que la X funcione */
+    height: 70px;       /* Altura fija imponente */
+    padding: 0 20px;
+}
+
+/* 3. EL TEXTO (Moderno, Sin Serifa, Grueso) */
+#modal-video .header-black h3 {
+    color: #ffffff !important;
+    margin: 0;
+    
+    /* FUENTE MODERNA (Esto arregla la letra antigua) */
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+    font-size: 1.6rem !important;  /* Tamaño grande */
+    font-weight: 800 !important;   /* Muy grueso */
+    letter-spacing: 2px;           /* Espacio entre letras elegante */
+    text-transform: uppercase;     /* Mayúsculas */
+    text-align: center;
+}
+
+/* 4. LA 'X' (Anclada a la Izquierda Absoluta) */
+#modal-video .close-white-spin {
+    position: absolute; 
+    right: 20px;        
+    top: 50%;       
+    transform: translateY(-50%); 
+    
+    color: #fff !important;
+    font-size: 30px !important;
+    width: 44px;
+    height: 44px;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    z-index: 10;
+}
+
+/* 5. EFECTO HOVER DE LA X (Rosa y Giro) */
+#modal-video .close-white-spin:hover {
+    color: #FF4081 !important; 
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-50%) rotate(-90deg); /* Mantiene centro y gira */
+}
+
+/* 6. CONTENEDOR VIDEO RESPONSIVE (No tocar, esto funciona bien) */
+.video-responsive-wrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* Ratio 16:9 */
+    height: 0;
+    background: #000;
+}
+.video-responsive-wrapper iframe {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+}
+
+/* 7. LIMPIEZA DE BODY */
+#modal-video .modal-body-scrollable {
+    padding: 0 !important;
+    background: #000 !important;
+}
+
+/* Recortador (Cropper) */
+#modal-cropper .img-container, .crop-container {
+    max-height: 60vh; max-width: 100%; background: #000;
+    border-radius: 8px; overflow: hidden; margin-bottom: 20px; display: flex; justify-content: center;
+}
+#modal-cropper img { display: block; max-width: 100%; max-height: 60vh; }
+
+/* Perfil Upload (Avatar grande) */
+.profile-avatar-upload { display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; gap: 15px; }
+.avatar-preview-container {
+    width: 120px; height: 120px; border-radius: 50%;
+    background: #f8f9fa; border: 3px solid #fff;
+    box-shadow: 0 0 0 3px #ec4899, 0 10px 20px rgba(0,0,0,0.15);
+    overflow: hidden; display: flex; justify-content: center; align-items: center;
+    position: relative; transition: transform 0.3s ease;
+}
+.avatar-preview-container:hover { transform: scale(1.05); }
+.full-wh { width: 100%; height: 100%; object-fit: cover; }
+.avatar-placeholder { font-size: 3rem; opacity: 0.3; user-select: none; }
+.grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+/* ==========================================================================
+   12. CHATBOT & NOTIFICACIONES
+   ========================================================================== */
+/* =========================================
+   BOTÓN FLOTANTE (TOGGLER)
+   ========================================= */
+.chatbot-toggler { 
+    position: fixed; bottom: 30px; right: 30px; 
+    background: linear-gradient(135deg, var(--primary-pink), var(--primary-purple));
+    width: 60px; height: 60px; border-radius: 50%; color: white; 
+    display: flex; align-items: center; justify-content: center; cursor: pointer; 
+    box-shadow: 0 8px 20px rgba(216, 27, 96, 0.4); z-index: 1000; border: none;
+    transform: rotate(0deg) scale(1); 
+    transition: all 0.3s ease;
+}
+
+body.show-chatbot .chatbot {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+}
+
+/* CONTENEDOR CHATBOT*/
+.chatbot {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;     
+    width: 360px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.5); 
+    transform-origin: bottom right; 
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1001;
+}
+body.show-chatbot .chatbot { opacity: 1; pointer-events: auto; transform: scale(1); }
+
+/* =========================================
+   HEADER
+   ========================================= */
+.chatbot-header { 
+    background: linear-gradient(135deg, var(--primary-pink), var(--primary-purple));
+    padding: 16px 20px; position: relative; 
+    display: flex; justify-content: space-between; align-items: center;
+    color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Marca y Título */
+.chat-brand {
+    display: flex; align-items: center; gap: 12px;
+}
+.header-icon {
+    font-size: 1.8rem;
+    background: rgba(255, 255, 255, 0.2); /* Fondo semitransparente para el icono */
+    padding: 8px; border-radius: 50%;
+}
+.chat-title h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: white; letter-spacing: 0.5px; }
+.status-dot { font-size: 0.75rem; opacity: 0.9; font-weight: 400; display: block; }
+
+/* Botón cerrar Header */
+.chatbot-header #close-chat-btn { 
+    background: transparent; border: none;
+    cursor: pointer; color: rgba(255,255,255,0.8);
+    transition: all 0.3s; display: flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 50%; padding: 0;
+}
+.chatbot-header #close-chat-btn span { font-size: 1.5rem; }
+.chatbot-header #close-chat-btn:hover { background: rgba(255,255,255,0.2); color: white; transform: rotate(90deg); }
+
+/* =========================================
+   ÁREA DE MENSAJES (CHATBOX)
+   ========================================= */
+.chatbox { 
+    height: 350px; overflow-y: auto; padding: 20px; 
+    background: #f4f6f8; display: flex; flex-direction: column; gap: 15px; 
+    margin: 0; /* Reset de ul */
+}
+
+/* Burbujas */
+.chat { list-style: none; display: flex; }
+.chat p { padding: 12px 16px; font-size: 0.95rem; max-width: 80%; line-height: 1.4; word-wrap: break-word; box-shadow: 0 2px 5px rgba(0,0,0,0.03); margin: 0; }
+.chat.outgoing { justify-content: flex-end; }
+.chat.outgoing p { background: var(--primary-pink); color: white; border-radius: 18px 18px 4px 18px; }
+.chat.incoming { justify-content: flex-start; }
+.chat.incoming span { 
+    width: 32px; height: 32px; background: var(--primary-purple); color: white; 
+    display: flex; align-items: center; justify-content: center; border-radius: 50%; 
+    margin-right: 10px; font-size: 1.1rem; align-self: flex-end; margin-bottom: 5px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.chat.incoming p { background: white; color: #333; border-radius: 18px 18px 18px 4px; border: 1px solid #eee; }
+
+/* =========================================
+   INPUT AREA (NUEVO: Con Clip)
+   ========================================= */
+.chat-input { 
+    display: flex; padding: 12px; background: white; 
+    border-top: 1px solid #eee; align-items: flex-end; /* Alineado abajo para multilínea */
+    gap: 10px; 
+}
+
+/* El Clip (Label del input file) */
+.file-label {
+    cursor: pointer; color: #888; 
+    display: flex; align-items: center; justify-content: center;
+    padding-bottom: 12px; /* Alineación visual con el textarea */
+    transition: 0.3s;
+}
+.file-label:hover { color: var(--primary-pink); transform: scale(1.1); }
+.file-label span { font-size: 1.4rem; transform: rotate(45deg); } /* Rotar clip para estilo */
+
+/* Textarea */
+.chat-input textarea { 
+    flex: 1; border: 1px solid #ddd; outline: none; resize: none; 
+    font-size: 0.95rem; height: 45px; max-height: 100px; padding: 12px 15px; 
+    background: #f9f9f9; border-radius: 24px; transition: 0.2s;
+    font-family: inherit;
+}
+.chat-input textarea:focus { background: #fff; border-color: var(--primary-purple); }
+
+/* Botón Enviar */
+#send-btn { 
+    color: white; cursor: pointer; 
+    background: var(--primary-pink); border: none;
+    width: 40px; height: 40px; border-radius: 50%; /* Botón redondo */
+    transition: 0.2s; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 2px;
+}
+#send-btn span { font-size: 1.2rem; margin-left: 2px; } /* Ajuste óptico icono */
+#send-btn:hover { background: var(--hover-fuchsia); transform: translateY(-2px); }
+
+/* Typing Animation */
+.typing-indicator span { display: inline-block; width: 6px; height: 6px; background: #aaa; border-radius: 50%; margin: 0 2px; animation: typing 1.4s infinite; }
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+/* Alertas & Toasts */
+.toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+.toast {
+    background: #333; color: white; padding: 12px 24px; border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2); font-size: 0.9rem;
+    display: flex; align-items: center; gap: 10px; animation: slideUpFade 0.4s ease;
+}
+.toast.success { background: var(--primary-green); }
+.toast.error { background: var(--danger-red); }
+
+.alert-container { width: 100%; margin-bottom: 20px; animation: slideDown 0.5s ease; }
+.alert-item { display: flex; align-items: center; padding: 15px 20px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; }
+.alert-item.HIGH { background-color: #fff5f5; border-left: 5px solid #fc8181; color: #c53030; }
+.alert-item.MEDIUM { background-color: #fffaf0; border-left: 5px solid #fbd38d; color: #c05621; }
+.alert-icon { font-size: 1.5rem; margin-right: 15px; }
+.alert-text { display: flex; flex-direction: column; }
+.alert-text strong { font-size: 0.95rem; margin-bottom: 2px; }
+.alert-text span { font-size: 0.85rem; opacity: 0.9; }
+.close-alert { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5; color: inherit; }
+.close-alert:hover { opacity: 1; }
+
+/* Checklist Items */
+/* =========================================
+   CHECKLIST & TAREAS (DISEÑO MEJORADO)
+   ========================================= */
+
+/* Contenedores de lista (Widget y Modal) */
+#checklist-container, 
+#lista-completa-container { 
+    display: flex; 
+    flex-direction: column; 
+    width: 100%;
+}
+
+/* Fila individual de cada tarea */
+.checklist-item-row { 
+    display: flex; 
+    align-items: center; 
+    padding: 12px 10px; 
+    border-bottom: 1px solid #f0f0f0; /* Línea separadora sutil */
+    transition: background 0.2s ease, opacity 0.3s;
+    background: white;
+}
+
+/* Efecto al pasar el mouse por encima */
+.checklist-item-row:hover { 
+    background: #fafafa; 
+}
+
+/* Texto de la tarea */
+.checklist-item-row span {
+    font-size: 0.95rem;
+    color: #4a4a4a;
+    font-weight: 500;
+    margin-right: auto; /* Empuja el botón de borrar a la derecha */
+    word-break: break-word;
+}
+
+/* Checkbox personalizado (Color Rosa) */
+.checklist-item-row input[type="checkbox"] {
+    appearance: none; /* Quitamos estilo por defecto */
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    margin-right: 15px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    flex-shrink: 0; /* Evita que se aplaste si hay mucho texto */
+}
+
+/* Estado Checkeado */
+.checklist-item-row input[type="checkbox"]:checked {
+    background-color: #e88f98; /* TU COLOR ROSA PRINCIPAL */
+    border-color: #e88f98;
+}
+
+/* El "tick" del checkbox */
+.checklist-item-row input[type="checkbox"]:checked::after {
+    content: '✔';
+    font-size: 14px;
+    color: white;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Botón Eliminar (X) */
+.checklist-item-row button {
+    opacity: 0; /* Oculto por defecto */
+    transform: scale(0.8);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: transparent;
+    border: none;
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+}
+
+/* Mostrar botón eliminar solo al hacer hover en la fila */
+.checklist-item-row:hover button {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.checklist-item-row button:hover {
+    background-color: #ffe5e5; /* Fondo rojo suave */
+    color: #d32f2f;
+}
+
+/* Input para Nueva Tarea (El desplegable) */
+#nueva-tarea-row {
+    background: #fff;
+    padding: 15px;
+    border-top: 1px solid #eee;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom: 10px;
+    border-radius: 8px;
+    animation: slideDown 0.3s ease;
+}
+
+#inputNuevaTarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+#inputNuevaTarea:focus {
+    border-color: #e88f98; /* Foco rosa */
+}
+
+/* Badge de Prioridad Alta */
+.checklist-item-row .badge-priority {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+/* Loaders */
+.skeleton { background: #eee; background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%); border-radius: 5px; background-size: 200% 100%; animation: 1.5s shine linear infinite; }
+@keyframes shine { to { background-position-x: -200%; } }
+.skeleton-text { height: 16px; margin-bottom: 8px; width: 100%; }
+.skeleton-img { width: 100%; height: 200px; }
+
+/* ==========================================================================
+   13. ANIMACIONES KEYFRAMES
+   ========================================================================== */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes zoomInModal { from { opacity: 0; transform: translate(0, 40%) scale(0.9); } to { opacity: 1; transform: translate(0, 0) scale(1); } }
+@keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+
+/* ==========================================================================
+   14. RESPONSIVE DESIGN
+   ========================================================================== */
+@media (max-width: 992px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .right-column { display: none; }
+    .navbar { padding: 15px 20px; }
+}
+
+@media (max-width: 768px) {
+    .welcome-header h1 { font-size: 2rem; }
+    .progress-white-box { padding: 20px; }
+    .vendors-split-container { grid-template-columns: 1fr; }
+    .modern-table th, .modern-table td { padding: 10px; font-size: 0.85rem; }
+    
+    .chatbot { width: 90%; right: 5%; bottom: 80px; }
+    .modal-header-modern h3 { font-size: 1.1rem; }
+    
+    .filter-pill { padding: 6px 12px; font-size: 0.8rem; }
+    .header-buttons-container { flex-direction: column; }
+    .pastel-btn { width: 100%; text-align: center; }
+}
+
+/* =========================================
+   MEJORA: DISEÑO DE RECORTADOR DE FOTOS
+   ========================================= */
+
+/* 1. El contenedor (La tarjeta) */
+#modal-cropper .modal-content-modern {
+    background-color: #ffffff !important; /* Fondo blanco general */
+    border-radius: 16px;
+    overflow: hidden; /* Para que nada se salga de los bordes redondeados */
+    display: flex;
+    flex-direction: column; /* Apila: Cabecera - Foto - Pie */
+    max-width: 600px !important; /* Ancho ideal */
+    width: 100%;
+    border: none;
+}
+
+/* 2. La Cabecera (Cinta Blanca) */
+#modal-cropper .modal-header-modern {
+    background: #ffffff !important;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 15px 20px;
+    color: #333; /* Texto oscuro para contraste */
+}
+
+#modal-cropper .modal-header-modern h3 {
+    color: #D81B60; /* Rosa elegante */
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Botón cerrar oscuro */
+#modal-cropper .close-modal-modern {
+    color: #555 !important; 
+}
+
+/* 3. El Cuerpo (Donde va la imagen oscura) */
+#modal-cropper .modal-body-scrollable {
+    padding: 0 !important; /* Sin relleno blanco */
+    background: #111; /* Fondo negro para resaltar la foto */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px; /* Altura mínima */
+}
+
+/* Contenedor de la imagen específico */
+#modal-cropper .img-container {
+    margin: 0 !important;
+    border-radius: 0 !important; /* Recto para que pegue con los bordes */
+    background: #000;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#modal-cropper img {
+    max-height: 50vh; /* Que no sea gigante */
+    max-width: 100%;
+    display: block;
+}
+
+/* 4. El Pie de página (Barra blanca abajo para el botón) */
+.modal-footer {
+    background: #ffffff;
+    padding: 15px 20px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: flex-end; /* Botón a la derecha (o center si prefieres) */
+    align-items: center;
+    gap: 10px;
+}
+
+/* Ajuste del botón para que se vea premium */
+.modal-footer .btn-primary {
+    padding: 10px 30px;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(216, 27, 96, 0.3);
+}
+
+/* DETALLES PROVEEDOR */
+
+#modal-vendor-details .modal-content-modern {
+    position: relative !important; 
+    padding-top: 20px; 
+}
+
+#modal-vendor-details .close-modal-modern {
+    position: absolute !important;
+    top: 15px !important;
+    right: 20px !important;
+    left: auto !important;  
+    
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    
+    /* Centrado del ícono */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    font-size: 2rem;   /* Tamaño grande */
+    color: #666;       /* Gris elegante */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 100;      /* Encima de todo */
+}
+
+/* 3. Efecto Hover (Rosa y Giro) */
+#modal-vendor-details .close-modal-modern:hover {
+    color: #FF4081 !important; 
+    background-color: rgba(0, 0, 0, 0.05); /* Fondo gris muy sutil */
+    transform: rotate(90deg); /* Giro */
+}
+
+/* VISTA MÓVIL */
+
+@media (max-width: 768px) {
+
+    .dashboard-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 20px;
+    }
+
+    .right-column {
+        width: 100% !important;
+        display: block !important;
+        min-height: auto;
+    }
+
+    .modal-card-large, 
+    .modal-content-modern {
+        width: 95% !important;     
+        max-width: 95% !important;
+        min-width: auto !important; 
+        height: auto !important;
+        max-height: 90vh !important; 
+        margin: 10px auto;
+    }
+    .modal-body-scrollable {
+        overflow-x: auto; 
+    }
+    
+    .modern-table {
+        min-width: 600px; 
+    }
+
+    .pastel-filters-container {
+        flex-wrap: wrap; 
+        justify-content: center;
+    }
+}
+
+/*Remove proveedor*/
+.vendor-item-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border-left: 4px solid var(--green-color, #4caf50); 
+    transition: transform 0.2s;
+}
+
+.vendor-item-card:hover {
+    transform: translateX(2px);
+}
+
+.vendor-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.vendor-info strong {
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.vendor-info small {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.btn-delete-icon {
+    background: transparent;
+    border: none;
+    color: #ff6b6b; 
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.btn-delete-icon:hover {
+    background-color: #ffe5e5; 
+    color: #d32f2f;
+    transform: scale(1.1);
+}
+
+
+#modal-confirm-delete {
+    /* 1. Posición y comportamiento */
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    
+    /* 2. Asegurar que esté ENCIMA del fondo borroso */
+    z-index: 20000 !important; /* Número altísimo */
+    
+    /* 3. Asegurar visibilidad */
+    background: transparent;
+    width: auto;
+    height: auto;
+    border: none;
+    display: block; /* Por defecto visible, la clase hidden lo ocultará */
+}
+
+/* Cuando tiene la clase 'hidden', lo ocultamos forzosamente */
+#modal-confirm-delete.hidden {
+    display: none !important;
+}
+
+/* Aseguramos que el fondo del modal sea blanco y bonito */
+.modal-content-modern {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); /* Sombra fuerte */
+    position: relative;
+    z-index: 20001; /* Un punto más que el contenedor padre */
+}
+
+/* El fondo borroso debe estar DETRÁS */
+#modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(5px); /* ESTO desenfoca el fondo, no el modal */
+    z-index: 998;
+}
+
+dialog.custom-modal {
+    z-index: 999;
+    border: none;
+    padding: 0;
+    background: transparent;
+}
+
+/* =======================================================
+   MODAL DE PLANIFICACIÓN (DISEÑO FINAL)
+   ======================================================= */
+
+/* 1. EL FONDO (Overlay)
+   - Cubre toda la pantalla
+   - Centra el contenido
+   - Aplica el desenfoque (Blur)
+*/
+#modal-full-checklist {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000; /* Por encima de todo */
+    
+    /* Fondo oscuro + Desenfoque (Blur) */
+    background-color: rgba(0, 0, 0, 0.4); 
+    backdrop-filter: blur(8px); /* ESTO HACE EL EFECTO BORROSO */
+    -webkit-backdrop-filter: blur(8px); /* Para Safari */
+    
+    /* Centrado Perfecto */
+    display: none; /* Oculto por defecto */
+    justify-content: center;
+    align-items: center;
+    
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Cuando JS activa esta clase, el modal aparece */
+#modal-full-checklist.show {
+    display: flex !important; /* Importante para el centrado */
+    opacity: 1;
+}
+
+/* 2. LA CAJA DEL CONTENIDO (Tarjeta Blanca) */
+#modal-full-checklist .modal-content-modern {
+    background: #ffffff;
+    width: 95%;
+    max-width: 500px; /* Ancho elegante */
+    max-height: 85vh; /* Altura máxima del 85% de la pantalla */
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3); /* Sombra flotante */
+    
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Para que nada se salga de los bordes redondos */
+    
+    /* Animación de entrada (Zoom) */
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#modal-full-checklist.show .modal-content-modern {
+    transform: scale(1);
+}
+
+/* 3. CABECERA (Header) */
+#modal-full-checklist .modal-header-modern {
+    padding: 18px 25px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+}
+
+#modal-full-checklist .modal-header-modern h3 {
+    margin: 0;
+    color: #e88f98; /* Tu rosa principal */
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+/* 4. CUERPO SCROLEABLE (Donde van las tareas) */
+#modal-full-checklist .modal-body-scrollable {
+    padding: 20px;
+    overflow-y: auto; /* Scroll SOLO aquí dentro */
+    scrollbar-width: thin; /* Scroll fino para Firefox */
+}
+
+/* Estilo del Scrollbar (Chrome/Safari) */
+#modal-full-checklist .modal-body-scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+#modal-full-checklist .modal-body-scrollable::-webkit-scrollbar-thumb {
+    background-color: #ddd;
+    border-radius: 10px;
+}
+
+/* 5. EL BOTÓN DE CERRAR ('X') - ANIMACIÓN ESPECIAL */
+#modal-full-checklist .close-modal-modern {
+    background: transparent;
+    border: none;
+    font-size: 2rem; /* X grande */
+    color: #aaa;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding-bottom: 4px; /* Ajuste óptico */
+    
+    /* Transición suave */
+    transition: all 0.4s ease;
+}
+
+/* Animación Hover: Giro + Color + Resplandor */
+#modal-full-checklist .close-modal-modern:hover {
+    color: #d81b60; /* Rosa fuerte */
+    background-color: #fff0f3; /* Fondo rosa pálido */
+    transform: rotate(180deg) scale(1.1); /* GIRO DE 180 GRADOS */
+    box-shadow: 0 0 15px rgba(216, 27, 96, 0.2);
+}
+
+/* =========================================
+   ESTILOS PREMIUM PARA TAREAS
+   ========================================= */
+
+/* 1. La Tarjeta Contenedora */
+.widget-tasks {
+    background: white;
+    border-radius: 20px;
+    padding: 30px 25px; /* Más espacio interno */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04); /* Sombra muy suave */
+    text-align: center;
+    border: 1px solid rgba(232, 143, 152, 0.15); /* Borde rosa casi invisible */
+    transition: transform 0.3s ease;
+    height: 100%; /* Para que ocupe la altura disponible */
+}
+
+.widget-tasks:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(232, 143, 152, 0.1);
+}
+
+/* 2. Encabezado e Ícono */
+.widget-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.icon-box {
+    width: 45px;
+    height: 45px;
+    background: #fff0f3; /* Fondo rosa pastel */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #e88f98;
+    box-shadow: 0 4px 10px rgba(232, 143, 152, 0.2);
+}
+
+.widget-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: #4a4a4a;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    font-family: 'Playfair Display', serif; /* Si usas esa fuente, o la que tengas */
+}
+
+/* 3. Área de lista */
+.task-list-area {
+    margin-bottom: 25px;
+    min-height: 50px;
+    text-align: left; /* Las tareas se leen mejor alineadas a la izquierda */
+}
+
+/* 4. El Botón Degradado (La joya de la corona) */
+.widget-footer {
+    margin-top: auto; /* Empuja el botón al fondo si hay espacio */
+}
+
+.btn-gradient-rounded {
+    background: linear-gradient(135deg, #e88f98 0%, #d81b60 100%);
+    border: none;
+    color: white;
+    padding: 12px 28px;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(216, 27, 96, 0.3);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-gradient-rounded:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(216, 27, 96, 0.4);
+    filter: brightness(1.1);
+}
+
+.arrow-icon {
+    font-size: 1.1rem;
+    transition: transform 0.3s;
+}
+
+.btn-gradient-rounded:hover .arrow-icon {
+    transform: translateX(4px);
+}
+
+/* Extra: Input moderno (por si lo activas) */
+.input-moderno {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #eee;
+    border-radius: 20px;
+    background: #f9f9f9;
+    outline: none;
+    transition: 0.3s;
+}
+.input-moderno:focus {
+    background: white;
+    border-color: #e88f98;
+    box-shadow: 0 0 0 3px rgba(232, 143, 152, 0.1);
+}
+
+/* =========================================
+   DISEÑO PREMIUM: WIDGET TAREAS
+   ========================================= */
+
+/* 1. LA TARJETA (Contenedor) */
+.widget-tasks {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 40px rgba(232, 143, 152, 0.15); /* Sombra rosa suave */
+    border: 1px solid rgba(232, 143, 152, 0.1);
+    display: flex;
+    flex-direction: column;
+    min-height: 280px; /* Altura mínima consistente */
+    transition: transform 0.3s ease;
+}
+
+.widget-tasks:hover {
+    transform: translateY(-5px);
+}
+
+/* 2. CABECERA (Título + Botón +) */
+.widget-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #eee; /* Separador sutil */
+}
+
+.title-with-icon h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #444;
+    font-weight: 700;
+    font-family: 'Playfair Display', serif;
+}
+
+.sparkle-icon {
+    font-size: 1.2rem;
+    margin-right: 5px;
+}
+
+/* Botón Redondo (+) */
+.btn-add-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: none;
+    background: #fdf2f4; /* Fondo muy pálido */
+    color: #e88f98;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.btn-add-circle:hover {
+    background: #e88f98;
+    color: white;
+    transform: rotate(90deg); /* Animación de giro divertida */
+}
+
+/* 3. INPUT DE NUEVA TAREA (Desplegable) */
+.add-task-drawer {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    animation: slideDown 0.3s ease;
+}
+
+.input-moderno {
+    flex: 1;
+    padding: 8px 15px;
+    border: 1px solid #ddd;
+    border-radius: 15px;
+    outline: none;
+    font-size: 0.9rem;
+}
+.input-moderno:focus {
+    border-color: #e88f98;
+}
+
+.btn-confirm-add {
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 0 15px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* 4. LISTA DE TAREAS (Vista Previa) */
+.task-list-preview {
+    flex: 1; /* Ocupa el espacio disponible */
+    display: flex;
+    flex-direction: column;
+    gap: 0; /* Sin espacio extra, usamos padding interno */
+}
+
+/* Estilo de cada item en el widget */
+.checklist-item-widget {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f9f9f9;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* Checkbox personalizado */
+.custom-check {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #e0e0e0;
+    border-radius: 5px;
+    margin-right: 12px;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+}
+.custom-check:checked {
+    background: #e88f98;
+    border-color: #e88f98;
+}
+.custom-check:checked::after {
+    content: '✓';
+    color: white;
+    font-size: 12px;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* 5. BOTÓN PRINCIPAL (Degradado) */
+.widget-footer {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.btn-gradient-rounded {
+    background: linear-gradient(135deg, #e88f98 0%, #d81b60 100%);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(216, 27, 96, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    width: 100%; /* Opcional: botón ancho */
+}
+
+.btn-gradient-rounded:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(216, 27, 96, 0.4);
+}

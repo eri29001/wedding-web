@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | Wedding Planner</title>
+    <link rel="icon" href="assets/icon.png">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,0,0" />
+    <link rel="stylesheet" href="dashboard-planner.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo-container"><i class="fas fa-rings-wedding"></i> AF Planner</div>
+        <nav>
+            <span class="nav-link" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Salir</span>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        
+        <h2 style="color: #444; margin-bottom: 20px;">Bienvenida Andrea! </h2>
+
+        <div class="top-dashboard-grid">
+            
+            <div id="calendar-section" class="card" style="margin-bottom: 0;">
+                <div class="calendar-custom-header">
+                    <div>
+                        <h3 style="margin: 0; color: var(--dark); font-size: 1.2rem;">Calendario</h3>
+                        <small style="color:#777; font-size: 0.8rem;">Sincronizado</small>
+                    </div>
+                    
+                    <div class="client-selector-group">
+                        <label style="font-weight: 600; color: var(--accent); margin:0; font-size: 0.8rem;"><i class="fas fa-filter"></i> Novia:</label>
+                        <select id="clientSelector" onchange="changeBrideFilter()" style="padding: 5px; border-radius: 6px; border: 1px solid #fce4ec; color: #333; outline: none; font-size: 0.8rem;">
+                        </select>
+                    </div>
+                </div>
+
+                <div id="calendar"></div>
+            </div>
+
+            <div class="card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: center;">
+                <div class="stats-header">
+                    <div class="big-rating">5.0</div>
+                    <div class="stars-large">★★★★★</div>
+                    <small style="color: #888;">Calificación Global</small>
+                </div>
+
+                <h4 style="margin: 0 0 15px 0; color: var(--dark); font-size: 0.95rem;">Detalle de Evaluación</h4>
+
+                <div class="stat-row">
+                    <div class="stat-label"><span>Comunicación</span> <span>98%</span></div>
+                    <div class="progress-bg"><div class="progress-fill" style="width: 98%;"></div></div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-label"><span>Creatividad</span> <span>95%</span></div>
+                    <div class="progress-bg"><div class="progress-fill" style="width: 95%;"></div></div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-label"><span>Gestión Presupuesto</span> <span>100%</span></div>
+                    <div class="progress-bg"><div class="progress-fill" style="width: 100%;"></div></div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-label"><span>Puntualidad</span> <span>92%</span></div>
+                    <div class="progress-bg"><div class="progress-fill" style="width: 92%;"></div></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="providers-section">
+            
+            <div class="card">
+                <div class="section-title contracts">
+                    <span><i class="fas fa-file-signature"></i> Proveedores Seleccionados & Contratos</span>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>Proveedor</th>
+                                <th>Servicio</th>
+                                <th>Novia</th>
+                                <th>Contrato</th>
+                                <th>Vigencia</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activeContractsTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title general-db">
+                    <span><i class="fas fa-database"></i> Proveedores Generales</span>
+                    
+                    <div id="dbControls">
+                        <label class="cta-btn" id="btnImport" style="display: none;">
+                            <i class="fas fa-cloud-upload-alt"></i> Importar Excel/Drive
+                            <input type="file" style="display: none;" onchange="handleGeneralImport(this)">
+                        </label>
+
+                        <div id="btnManageImport" style="display: flex; gap: 10px;">
+                            <button class="cta-btn-update" onclick="triggerImportClick()">
+                                <i class="fas fa-sync-alt"></i> Actualizar
+                            </button>
+                            <button class="cta-btn-danger" onclick="deleteImportedDB()">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="max-height: 300px; overflow-y: auto; overflow-x: auto;">
+                    <table class="styled-table" id="generalTable">
+                        <thead style="position: sticky; top: 0; background: #fff; z-index: 10;">
+                            <tr>
+                                <th>Proveedor</th>
+                                <th>Categoría</th>
+                                <th>Rating General</th>
+                                <th style="text-align: right;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="generalTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <button class="chat-toggler" id="chat-toggler">
+        <span class="material-symbols-rounded">chat_bubble</span>
+    </button>
+
+    <div class="chatbot">
+        <header>
+            <h2>Asistente de Bodas</h2>
+            <span class="close-btn material-symbols-rounded">close</span>
+        </header>
+        
+        <ul class="chatbox">
+            <li class="chat incoming">
+                <span class="material-symbols-rounded">smart_toy</span>
+                <p>¡Hola! Soy tu asistente virtual. 👋<br>¿Cómo puedo ayudarte con la boda hoy?</p>
+            </li>
+        </ul>
+        
+        <div class="chat-input">
+            <textarea placeholder="Escribe un mensaje..." required></textarea>
+            <span id="send-btn" class="material-symbols-rounded">send</span>
+        </div>
+    </div>
+
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                <h3 style="margin:0; color:var(--dark);">Evento</h3>
+                <span onclick="closeModal('eventModal')" style="cursor:pointer; font-size:1.5rem;">&times;</span>
+            </div>
+            
+            <div class="form-group">
+                <label>Título</label>
+                <input type="text" id="evtTitle">
+            </div>
+            
+            <div class="form-group" style="background: #fdf2f7; padding: 10px; border-radius: 6px; border-left: 3px solid var(--accent);">
+                <label style="color: var(--accent); font-weight: 600;">Dirigido a:</label>
+                <input type="text" id="evtTarget" placeholder="Ej: Novia, Novio, Planner, Proveedor..." style="background: white;">
+            </div>
+
+            <div class="form-group">
+                <label>Fecha Máxima</label>
+                <input type="date" id="evtDeadline">
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea id="evtDesc" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Adjuntos</label>
+                <div style="display:flex; gap:5px;">
+                    <input type="text" id="evtLink" placeholder="Enlace..." style="flex:1;">
+                    <label class="btn-action btn-upload" style="margin:0;"><i class="fas fa-paperclip"></i><input type="file" style="display:none;"></label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Prioridad</label>
+                <select id="evtPriority">
+                    <option value="Urgente">Urgente</option>
+                    <option value="Medio" selected>Medio</option>
+                    <option value="Bajo">Bajo</option>
+                </select>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button onclick="deleteEvent()" id="btnDeleteEvent" class="btn-delete" style="display:none; flex:1; justify-content:center;">Eliminar</button>
+                <button onclick="saveEvent()" class="cta-btn" style="flex:1; justify-content:center;">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="providerDetailModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <span onclick="closeModal('providerDetailModal')" style="float:right; cursor:pointer; font-size:1.5rem;">&times;</span>
+            <h3 id="detail-prov-name" style="color: var(--dark); margin-bottom: 5px;">Nombre Proveedor</h3>
+            <small style="color: #777; margin-bottom: 15px; display:block;">Ficha Técnica</small>
+            <div class="score-big" id="detail-score">4.8</div>
+            <div class="score-stars">★★★★★</div>
+            <div class="detail-row">
+                <div class="detail-label">Calidad</div>
+                <div class="detail-bar-bg"><div class="detail-bar-fill" id="bar-calidad" style="width:0%"></div></div>
+                <div class="detail-val" id="val-calidad">0</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Precio</div>
+                <div class="detail-bar-bg"><div class="detail-bar-fill" id="bar-precio" style="width:0%"></div></div>
+                <div class="detail-val" id="val-precio">0</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Servicio</div>
+                <div class="detail-bar-bg"><div class="detail-bar-fill" id="bar-servicio" style="width:0%"></div></div>
+                <div class="detail-val" id="val-servicio">0</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Puntualidad</div>
+                <div class="detail-bar-bg"><div class="detail-bar-fill" id="bar-puntualidad" style="width:0%"></div></div>
+                <div class="detail-val" id="val-puntualidad">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="contractModal" class="modal">
+        <div class="modal-content">
+            <span onclick="closeModal('contractModal')" style="float:right; cursor:pointer; font-size:1.5rem;">&times;</span>
+            <h3 style="color: var(--accent);">Gestión de Contrato</h3>
+            <p id="contractModalText" style="font-size:0.9rem; color:#666;"></p>
+            <input type="hidden" id="contractTargetKey">
+            <div style="background: #f1f1f1; padding: 20px; border-radius: 8px; text-align: center; border: 2px dashed #ccc; margin: 20px 0;">
+                <i class="fas fa-file-pdf" style="font-size: 2rem; color: #c62828;"></i>
+                <p style="margin: 10px 0;">Selecciona el archivo PDF</p>
+                <input type="file" id="pdfInput" accept=".pdf">
+            </div>
+            <button class="cta-btn" onclick="saveContract()" style="width:100%;">Guardar y Notificar</button>
+        </div>
+    </div>
+
+    <div id="dateModal" class="modal">
+        <div class="modal-content" style="max-width:350px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                <h4 style="margin:0; color:var(--accent);">Vigencia del Servicio</h4>
+                <span style="cursor:pointer;" onclick="closeModal('dateModal')">&times;</span>
+            </div>
+            <p id="modal-provider-name" style="font-weight:600; margin-bottom:15px;"></p>
+            <div class="form-group"><label>Inicio:</label><input type="date" id="prov-start"></div>
+            <div class="form-group"><label>Fin:</label><input type="date" id="prov-end"></div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
+                <button class="cta-btn" onclick="saveProviderDates()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
+    
+    <script>
+        const API_URL = 'https://wedding-web-lygz.onrender.com/api/ia/chat'; 
+
+        const bridesList = [
+            { id: 'novia1', name: 'Erika Arroba', email: 'earrobalopez@gmail.com' },
+            { id: 'novia2', name: 'Maria Gonzalez', email: 'maria.gonzalez@boda.com' },
+            { id: 'novia3', name: 'Sofia Martinez', email: 'sofia.martinez@email.com' },
+            { id: 'novia4', name: 'Carla Ruiz', email: 'carla.ruiz@wedding.com' },
+            { id: 'novia5', name: 'Valentina Lopez', email: 'valentina.lopez@dream.com' },
+            { id: 'novia6', name: 'Lucia Fernandez', email: 'lucia.fer@mail.com' },
+            { id: 'novia7', name: 'Isabella Rojas', email: 'isabella.rojas@future.com' }
+        ];
+
+        // DATOS DE EJEMPLO CON EL CAMPO 'TARGET' (DIRIGIDO A)
+        let eventsDB = {
+            'novia1': [{ id: 'ev1', title: 'Prueba Menú', start: '2025-05-10', extendedProps: { priority: 'Medio', deadline: '2025-05-12', desc: 'Degustación', link: '', target: 'Novios' }, color: '#3788d8' }],
+            'novia2': [{ id: 'ev2', title: 'Cita DJ', start: '2025-06-15', extendedProps: { priority: 'Urgente', deadline: '2025-06-15', desc: 'Playlist', link: '', target: 'Planner' }, color: '#D81B60' }]
+        };
+
+        let selectedProvidersData = [
+            { provider: 'Flores del Valle', category: 'Decoración', brideId: 'novia1', dateRange: null },
+            { provider: 'DJ BeatMaster', category: 'Música', brideId: 'novia1', dateRange: '10 Feb - 12 Feb' },
+            { provider: 'Catering Deluxe', category: 'Catering', brideId: 'novia2', dateRange: null }
+        ];
+        
+        let contractsDB = {}; 
+        let calendar;
+        let currentBrideId = 'novia1';
+        let currentEventObj = null; 
+        let clickedDateStr = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // 1. Cargar Novias
+            const selector = document.getElementById('clientSelector');
+            bridesList.forEach(b => {
+                let opt = document.createElement('option');
+                opt.value = b.id;
+                opt.textContent = b.name;
+                selector.appendChild(opt);
+            });
+
+            // 2. Inicializar Tablas
+            renderContractsTable();
+            fillGeneralDatabase();
+
+            // 3. Inicializar Calendario
+            var calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                height: 500,
+                contentHeight: 'auto',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth' },
+                dateClick: function(info) {
+                    currentEventObj = null;
+                    clickedDateStr = info.dateStr;
+                    openEventModal();
+                },
+                eventClick: function(info) {
+                    currentEventObj = info.event;
+                    openEventModal(info.event);
+                },
+                events: function(fetchInfo, successCallback, failureCallback) {
+                    const events = eventsDB[currentBrideId] || [];
+                    successCallback(events);
+                }
+            });
+            calendar.render();
+
+            // 4. LÓGICA DEL CHATBOT CONECTADO AL SERVIDOR
+            const chatToggler = document.querySelector(".chat-toggler");
+            const closeBtn = document.querySelector(".close-btn");
+            const chatbox = document.querySelector(".chatbox");
+            const chatInput = document.querySelector(".chat-input textarea");
+            const sendChatBtn = document.querySelector("#send-btn");
+
+            if(chatToggler) chatToggler.addEventListener("click", () => document.body.classList.toggle("show-chatbot"));
+            if(closeBtn) closeBtn.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
+
+            const createChatLi = (message, className) => {
+                const chatLi = document.createElement("li");
+                chatLi.classList.add("chat", className);
+                let chatContent = className === "outgoing" 
+                    ? `<p></p>` 
+                    : `<span class="material-symbols-rounded">smart_toy</span><p></p>`;
+                chatLi.innerHTML = chatContent;
+                chatLi.querySelector("p").textContent = message; 
+                return chatLi;
+            }
+
+            // FUNCIÓN QUE HABLA CON TU SERVIDOR NODE.JS
+            const handleChat = async () => {
+                const userMessage = chatInput.value.trim();
+                if(!userMessage) return;
+                
+                // Mostrar mensaje del usuario
+                chatInput.value = "";
+                chatbox.appendChild(createChatLi(userMessage, "outgoing"));
+                chatbox.scrollTo(0, chatbox.scrollHeight);
+                
+                // Mensaje de espera
+                const loadingLi = createChatLi("Consultando a la IA...", "incoming");
+                chatbox.appendChild(loadingLi);
+                chatbox.scrollTo(0, chatbox.scrollHeight);
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            message: userMessage,
+                            context: "wedding_planner"
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    chatbox.removeChild(loadingLi);
+                    
+                    if (data.success) {
+                        chatbox.appendChild(createChatLi(data.response, "incoming"));
+                    } else {
+                        chatbox.appendChild(createChatLi("Error: La IA no respondió correctamente.", "incoming"));
+                    }
+
+                } catch (error) {
+                    chatbox.removeChild(loadingLi);
+                    chatbox.appendChild(createChatLi("Error de conexión. Asegúrate de que el servidor (server.js) esté corriendo.", "incoming"));
+                    console.error("Error chatbot:", error);
+                }
+                
+                chatbox.scrollTo(0, chatbox.scrollHeight);
+            }
+
+            if(sendChatBtn) sendChatBtn.addEventListener("click", handleChat);
+            if(chatInput) {
+                chatInput.addEventListener("keydown", (e) => {
+                    if(e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleChat(); }
+                });
+            }
+        });
+
+        // FUNCIONES DE GESTIÓN Y EVENTOS
+        
+        function changeBrideFilter() {
+            currentBrideId = document.getElementById('clientSelector').value;
+            calendar.refetchEvents();
+        }
+
+        function fillGeneralDatabase() {
+            const tbody = document.getElementById("generalTableBody");
+            const categories = ['Decoración', 'Catering', 'Música', 'Fotografía', 'Lugar', 'Vestido'];
+            const names = ['Elite Events', 'BodaSoñada', 'FotoPro', 'MusicVibes', 'GourmetLife', 'DecoStyle', 'FlowerPower'];
+            
+            let html = '';
+            for(let i=1; i<=20; i++) {
+                const cat = categories[Math.floor(Math.random()*categories.length)];
+                const name = names[Math.floor(Math.random()*names.length)] + ' ' + i;
+                const rating = (3.5 + Math.random() * 1.5).toFixed(1);
+                html += `<tr><td><span class="provider-link" onclick="showProviderDetails('${name}', '${rating}')">${name}</span></td><td>${cat}</td><td><span class="rating-stars">★</span> ${rating}</td><td style="text-align:right;"><span style="color:#2e7d32; font-size:0.8rem;">● Activo</span></td></tr>`;
+            }
+            tbody.innerHTML = html;
+        }
+
+        function renderContractsTable() {
+            const tbody = document.getElementById('activeContractsTable');
+            tbody.innerHTML = '';
+            selectedProvidersData.forEach((item, index) => {
+                const brideName = bridesList.find(b => b.id === item.brideId)?.name || 'N/A';
+                const key = `${item.provider}_${item.brideId}`;
+                const hasContract = contractsDB[key];
+                
+                let contractHtml = hasContract 
+                    ? `<span style="color:#2e7d32; font-size:0.8rem;"><i class="fas fa-check-circle"></i> Subido</span>`
+                    : `<button onclick="openContractModal('${item.provider}', '${item.brideId}')" class="btn-action btn-upload"><i class="fas fa-upload"></i> Subir</button>`;
+                let dateHtml = item.dateRange 
+                    ? `<button class="btn-action btn-date-display" onclick="openDateModal('${item.provider}', ${index})">${item.dateRange}</button>`
+                    : `<button class="btn-action btn-calendar" onclick="openDateModal('${item.provider}', ${index})">Asignar Fechas</button>`;
+
+                tbody.innerHTML += `<tr><td><span class="provider-link" onclick="showProviderDetails('${item.provider}', '4.9')">${item.provider}</span></td><td>${item.category}</td><td><span class="tag-bride">${brideName}</span></td><td>${contractHtml}</td><td>${dateHtml}</td></tr>`;
+            });
+        }
+
+        // --- FICHA PROVEEDOR ---
+        function showProviderDetails(name, score) {
+            document.getElementById('detail-prov-name').innerText = name;
+            document.getElementById('detail-score').innerText = score;
+            document.querySelectorAll('.detail-bar-fill').forEach(el => el.style.width = '0%');
+            openModal('providerDetailModal');
+            setTimeout(() => {
+                updateStat('calidad', Math.floor(Math.random() * 15 + 85));
+                updateStat('precio', Math.floor(Math.random() * 20 + 80));
+                updateStat('servicio', Math.floor(Math.random() * 10 + 90));
+                updateStat('puntualidad', Math.floor(Math.random() * 12 + 88));
+            }, 100);
+        }
+        function updateStat(id, val) {
+            document.getElementById(`bar-${id}`).style.width = val + '%';
+            document.getElementById(`val-${id}`).innerText = val + '%';
+        }
+
+        // --- MODALES ---
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; document.body.classList.add('modal-open'); }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; document.body.classList.remove('modal-open'); }
+
+        // --- EVENTOS DEL CALENDARIO ---
+        function openEventModal(event = null) {
+            const btnDelete = document.getElementById('btnDeleteEvent');
+            document.getElementById('evtTitle').value = '';
+            document.getElementById('evtTarget').value = ''; 
+            document.getElementById('evtDeadline').value = '';
+            document.getElementById('evtDesc').value = '';
+            document.getElementById('evtLink').value = '';
+            
+            if(event) {
+                document.querySelector('#eventModal h3').innerText = 'Editar Evento';
+                document.getElementById('evtTitle').value = event.title;
+                
+                // Cargar datos guardados, incluido Target
+                document.getElementById('evtTarget').value = event.extendedProps.target || ''; 
+                document.getElementById('evtDeadline').value = event.extendedProps.deadline || '';
+                document.getElementById('evtDesc').value = event.extendedProps.desc || '';
+                document.getElementById('evtLink').value = event.extendedProps.link || '';
+                btnDelete.style.display = 'block';
+            } else {
+                document.querySelector('#eventModal h3').innerText = 'Nuevo Evento';
+                document.getElementById('evtDeadline').value = clickedDateStr; 
+                btnDelete.style.display = 'none';
+            }
+            openModal('eventModal');
+        }
+
+        function saveEvent() {
+            const title = document.getElementById('evtTitle').value;
+            const target = document.getElementById('evtTarget').value; // LEER NUEVO CAMPO
+            const deadline = document.getElementById('evtDeadline').value;
+            const desc = document.getElementById('evtDesc').value;
+            const link = document.getElementById('evtLink').value;
+            const priority = document.getElementById('evtPriority').value;
+            
+            let color = priority === 'Urgente' ? '#D81B60' : (priority === 'Bajo' ? '#2e7d32' : '#3788d8');
+
+            if(!title) return alert("El título es obligatorio");
+
+            if(currentEventObj) {
+                // Actualizar evento existente
+                currentEventObj.setProp('title', title);
+                currentEventObj.setProp('color', color);
+                
+                // GUARDAR EL CAMPO 'TARGET'
+                currentEventObj.setExtendedProp('target', target);
+                currentEventObj.setExtendedProp('deadline', deadline);
+                currentEventObj.setExtendedProp('desc', desc);
+                currentEventObj.setExtendedProp('link', link);
+            } else {
+                // Crear nuevo evento
+                const newId = 'ev' + new Date().getTime();
+                if(!eventsDB[currentBrideId]) eventsDB[currentBrideId] = [];
+                
+                eventsDB[currentBrideId].push({ 
+                    id: newId, 
+                    title, 
+                    start: clickedDateStr, 
+                    color, 
+                    extendedProps: { deadline, desc, link, target } // AÑADIR AQUI
+                });
+                calendar.refetchEvents();
+            }
+            closeModal('eventModal');
+        }
+
+        function deleteEvent() {
+            if(currentEventObj) { currentEventObj.remove(); closeModal('eventModal'); }
+        }
+
+        // --- CONTRATOS Y FECHAS ---
+        let currentProviderIndex = -1;
+        function openDateModal(prov, idx) {
+            currentProviderIndex = idx;
+            document.getElementById('modal-provider-name').textContent = prov;
+            openModal('dateModal');
+        }
+        function saveProviderDates() {
+            const s = document.getElementById('prov-start').value;
+            const e = document.getElementById('prov-end').value;
+            if(s && e) {
+                selectedProvidersData[currentProviderIndex].dateRange = `${new Date(s).getDate()}/${new Date(s).getMonth()+1} - ${new Date(e).getDate()}/${new Date(e).getMonth()+1}`;
+                renderContractsTable();
+                closeModal('dateModal');
+            }
+        }
+        function openContractModal(p, b) {
+            document.getElementById('contractTargetKey').value = `${p}_${b}`;
+            document.getElementById('contractModalText').innerText = p;
+            openModal('contractModal');
+        }
+        function saveContract() {
+            contractsDB[document.getElementById('contractTargetKey').value] = true;
+            renderContractsTable();
+            closeModal('contractModal');
+        }
+
+        function triggerImportClick() { document.querySelector('#btnImport input').click(); }
+        function handleGeneralImport(input) { alert("Base de datos actualizada correctamente."); }
+        function deleteImportedDB() {
+            if(confirm("¿Segura de eliminar la base de datos completa?")) {
+                document.getElementById('generalTableBody').innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">No hay datos. Importa un archivo.</td></tr>';
+                document.getElementById('btnManageImport').style.display = 'none';
+                document.getElementById('btnImport').style.display = 'inline-flex';
+            }
+        }
+        function logout() { window.location.href='index.html'; }
+    </script>
+
+</body>
+</html>
