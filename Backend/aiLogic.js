@@ -1,43 +1,74 @@
 // Archivo: Backend/aiLogic.js
 
-// NOTA: La palabra 'export' al inicio es vital para que server.js lo lea
-export function filtrarConIA(perfilNovia, listaProveedores) {
-    let recomendados = [];
-    
-    // Normalizamos textos (minúsculas) para evitar errores si vienen vacíos
-    const estiloNovia = (perfilNovia.estilo_boda || "").toLowerCase();
-    const presupuestoNovia = (perfilNovia.presupuesto || "").toLowerCase();
+export function filtrarConIA(perfilNovia = {}, listaProveedores = []) {
+    if (!Array.isArray(listaProveedores) || listaProveedores.length === 0) {
+        return [];
+    }
 
-    // Si no hay datos de filtro, devolvemos todo por seguridad
-    if(!estiloNovia && !presupuestoNovia) return listaProveedores;
+    // 1. Normalización con soporte dual (Base de Datos PostgreSQL y DTOs anteriores)
+    const estiloNovia = (perfilNovia.estilos_preferidos || perfilNovia.estilo_boda || "").toLowerCase();
+    const presupuestoNovia = (perfilNovia.presupuesto || "").toString().toLowerCase();
+    const limitePresupuesto = parseFloat(perfilNovia.budget_limit || perfilNovia.presupuesto) || 0;
 
-    console.log(`🤖 IA Procesando: Buscando estilo "${estiloNovia}" con presupuesto "${presupuestoNovia}"`);
+    // Si no hay filtros configurados, devolvemos todo con formato de array seguro
+    if (!estiloNovia && !presupuestoNovia && limitePresupuesto === 0) {
+        return listaProveedores.map(p => ({
+            ...p,
+            estilo: Array.isArray(p.estilo) ? p.estilo : (p.estilo ? p.estilo.split(',').map(e => e.trim()) : []),
+            score: 0
+        }));
+    }
 
-    listaProveedores.forEach(proveedor => {
-        try {
-            let score = 0;
-            // Verificamos que el proveedor tenga datos
-            const estilosProveedor = (proveedor.estilo || "").toLowerCase();
-            const presProv = (proveedor.presupuesto || "").toLowerCase();
+    console.log(`🤖 IA Procesando: Evaluando recomendaciones para estilo "${estiloNovia}"`);
 
-            // 1. Coincidencia de Estilo
-            if (estilosProveedor.includes(estiloNovia)) score += 5;
-            
-            // 2. Coincidencia de Presupuesto
-            if (presProv === presupuestoNovia) score += 3;
-            else if (presupuestoNovia === 'alto' && presProv === 'medio') score += 2;
+    // 2. Mapeo y scoring seguro
+    const procesados = listaProveedores.map(proveedor => {
+        let score = 0;
 
-            // 3. Umbral de recomendación (Si supera el puntaje, lo agregamos)
-            if (score >= 3) {
-                let provFormat = { ...proveedor };
-                // Convertimos el texto "boho,playa" en una lista ["boho", "playa"]
-                provFormat.estilo = proveedor.estilo ? proveedor.estilo.split(',') : [];
-                recomendados.push(provFormat);
-            }
-        } catch (e) {
-            console.error("Error procesando proveedor:", e);
+        const estilosProveedor = (
+            Array.isArray(proveedor.estilo) 
+                ? proveedor.estilo.join(',') 
+                : (proveedor.estilo || "")
+        ).toLowerCase();
+        
+        const presProvTexto = (proveedor.presupuesto || "").toString().toLowerCase();
+        const costoProv = parseFloat(proveedor.costo) || 0;
+
+        // --- Criterio A: Coincidencia por Estilo ---
+        if (estiloNovia && estilosProveedor) {
+            const listaEstilosNovia = estiloNovia.split(',').map(e => e.trim());
+            const tieneCoincidencia = listaEstilosNovia.some(estilo => estilo && estilosProveedor.includes(estilo));
+            if (tieneCoincidencia) score += 50;
         }
+
+        // --- Criterio B: Coincidencia por Presupuesto Numérico (Neon DB) ---
+        if (limitePresupuesto > 0 && costoProv > 0) {
+            if (costoProv <= limitePresupuesto) score += 40;
+            else if (costoProv <= limitePresupuesto * 1.15) score += 20; // Margen de tolerancia del 15%
+        } else if (presupuestoNovia && presProvTexto) {
+            // --- Criterio C: Coincidencia Cualitativa ('alto', 'medio', 'bajo') ---
+            if (presProvTexto === presupuestoNovia) score += 30;
+            else if (presupuestoNovia === 'alto' && presProvTexto === 'medio') score += 20;
+        }
+
+        // Normalización del campo 'estilo' para evitar errores en el Frontend
+        let estiloArray = [];
+        if (Array.isArray(proveedor.estilo)) {
+            estiloArray = proveedor.estilo;
+        } else if (typeof proveedor.estilo === 'string' && proveedor.estilo.trim() !== '') {
+            estiloArray = proveedor.estilo.split(',').map(e => e.trim());
+        }
+
+        return {
+            ...proveedor,
+            estilo: estiloArray,
+            score: score,
+            matchPercentage: Math.min(score, 100) // Atributo útil para mostrar insignias (ej: "Match 90%")
+        };
     });
 
-    return recomendados;
+    // 3. Ordenar descendentemente: Los proveedores con mejor puntuación van primero
+    procesados.sort((a, b) => b.score - a.score);
+
+    return procesados;
 }
