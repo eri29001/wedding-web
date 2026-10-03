@@ -3,11 +3,12 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool, query } from '../config/db.js';
 import transporter from '../config/mailer.js';
+import { getResetPasswordEmailTemplate } from '../config/emailTemplates.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secreto_super_seguro_wedding_web_2026';
 
 // ======================================================
-// 1. INICIO DE SESIÓN (LOGIN)
+// 1. INICIO DE SESIÓN (LOGIN - SESIÓN DE 7 DÍAS)
 // ======================================================
 export const login = async (req, res) => {
     const { email, password } = req.body;
@@ -18,13 +19,20 @@ export const login = async (req, res) => {
         }
 
         const user = result.rows[0];
+
+        // Cumplimiento LOPDP: Prevenir acceso a cuentas dadas de baja
+        if (user.is_anonymized) {
+            return res.status(403).json({ success: false, message: 'Esta cuenta ha sido dada de baja por solicitud del usuario.' });
+        }
+
         const match = await bcrypt.compare(password, user.password);
 
         if (match) {
+            // Ampliado a 7 días para evitar cierres constantes de sesión
             const token = jwt.sign(
                 { userId: user.id, role: user.role, name: user.name },
                 JWT_SECRET,
-                { expiresIn: '24h' }
+                { expiresIn: '7d' }
             );
 
             res.json({ 
@@ -32,7 +40,8 @@ export const login = async (req, res) => {
                 token: token,
                 userId: user.id, 
                 role: user.role, 
-                name: user.name 
+                name: user.name,
+                mustChangePassword: user.must_change_password || false
             });
         } else {
             res.status(401).json({ success: false, message: 'Contraseña incorrecta.' });
@@ -99,7 +108,6 @@ export const forgotPassword = async (req, res) => {
     try {
         const result = await query("SELECT * FROM users WHERE email = $1", [email]);
         
-        // Si no existe, devolvemos 404 explícito
         if (result.rows.length === 0) {
             return res.status(404).json({ 
                 success: false, 
@@ -119,34 +127,19 @@ export const forgotPassword = async (req, res) => {
             [token, expires, user.id]
         );
 
-        // Enlace enviado por correo
         const frontendUrl = process.env.FRONTEND_URL || 'https://wedding-web-lygz.onrender.com';
         const resetUrl = `${frontendUrl}/reset-password.html?token=${token}`;
 
-        // Contenido del email
-        const mailOptions = {
+        // Enviar plantilla de correo maquetada
+        await transporter.sendMail({
             from: `"Andrea Figueroa WP" <${process.env.EMAIL_USER}>`,
             to: user.email,
             subject: 'Restablecer contraseña - Andrea Figueroa Wedding Planner',
-            html: `
-                <div style="font-family: Arial, sans-serif; padding: 25px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px;">
-                    <h2 style="color: #D81B60; text-align: center;">Restablecer Contraseña</h2>
-                    <p>Hola <strong>${user.name}</strong>,</p>
-                    <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en la plataforma de Andrea Figueroa Wedding Planner.</p>
-                    <p>Haz clic en el siguiente botón para crear una nueva clave. Este enlace expira en <strong>15 minutos</strong>:</p>
-                    
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="${resetUrl}" style="background-color: #D81B60; color: white; padding: 12px 28px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
-                            Restablecer Contraseña
-                        </a>
-                    </div>
-                    
-                    <p style="font-size: 0.85rem; color: #777;">Si no solicitaste este cambio, puedes ignorar este correo y tu contraseña continuará siendo la misma.</p>
-                </div>
-            `
-        };
-
-        await transporter.sendMail(mailOptions);
+            html: getResetPasswordEmailTemplate({
+                name: user.name || 'Cliente',
+                resetUrl
+            })
+        });
 
         res.json({ 
             success: true, 
@@ -170,7 +163,7 @@ export const resetPassword = async (req, res) => {
     }
 
     try {
-        // Buscar usuario cuyo token coincida y NO haya expirado (reset_password_expires > NOW())
+        // Verificar token vigente
         const result = await query(
             "SELECT * FROM users WHERE reset_password_token = $1 AND reset_password_expires > NOW()",
             [token]
@@ -186,9 +179,9 @@ export const resetPassword = async (req, res) => {
         const user = result.rows[0];
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        // Actualizar contraseña y limpiar campos temporales
+        // Actualizar contraseña, limpiar tokens y desactivar el cambio obligatorio
         await query(
-            "UPDATE users SET password = $1, reset_password_token = NULL, reset_password_expires = NULL WHERE id = $2",
+            "UPDATE users SET password = $1, reset_password_token = NULL, reset_password_expires = NULL, must_change_password = FALSE WHERE id = $2",
             [hashedPassword, user.id]
         );
 
