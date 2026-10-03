@@ -17,4 +17,5 @@ if (process.env.GEMINI_API_KEY) {
     console.warn("⚠️ Advertencia: GEMINI_API_KEY no encontrada en .env");
 }
 
-export { chatModel };
+// Exportamos 'chatModel' y también 'model' como alias para compatibilidad total
+export { chatModel, chatModel as model };
