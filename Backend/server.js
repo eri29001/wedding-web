@@ -12,14 +12,12 @@ import profileRoutes from './routes/profileRoutes.js';
 import providerRoutes from './routes/providerRoutes.js';
 import privacyRoutes from './routes/privacyRoutes.js';
 
-// ...
-app.use('/api', privacyRoutes);
-
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Configuración de Middlewares
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -27,16 +25,17 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '50mb' }));
 
-// Inicialización de la Base de Datos
+// Inicialización de la Base de Datos (PostgreSQL en Neon)
 inicializarBaseDeDatos();
 
-// Definición de Endpoints
+// Definición y Registro de Endpoints
 app.use('/api', authRoutes);
 app.use('/api', aiRoutes);
 app.use('/api', calendarRoutes);
 app.use('/api', checklistRoutes);
 app.use('/api', profileRoutes);
 app.use('/api', providerRoutes);
+app.use('/api', privacyRoutes);
 
 app.listen(PORT, () => {
     console.log(`\n✨ SERVIDOR MODULAR EJECUTÁNDOSE EN PUERTO: ${PORT}`);

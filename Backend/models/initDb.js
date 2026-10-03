@@ -6,14 +6,29 @@ export async function inicializarBaseDeDatos() {
         const client = await pool.connect();
         console.log("🔌 Conectando a PostgreSQL (Neon)...");
 
-        // 1. Tabla Usuarios
+        // 1. Tabla Usuarios (Con recuperación de clave, LOPDP y cambio obligatorio de contraseña)
         await client.query(`CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             role TEXT DEFAULT 'novia',
-            name TEXT
+            name TEXT,
+            reset_password_token TEXT,
+            reset_password_expires TIMESTAMP,
+            must_change_password BOOLEAN DEFAULT FALSE,
+            is_anonymized BOOLEAN DEFAULT FALSE,
+            anonymized_at TIMESTAMP WITH TIME ZONE
         )`);
+
+        // Migration/Alteración segura para bases de datos ya desplegadas en Neon
+        await client.query(`
+            ALTER TABLE users 
+            ADD COLUMN IF NOT EXISTS reset_password_token TEXT,
+            ADD COLUMN IF NOT EXISTS reset_password_expires TIMESTAMP,
+            ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT FALSE,
+            ADD COLUMN IF NOT EXISTS is_anonymized BOOLEAN DEFAULT FALSE,
+            ADD COLUMN IF NOT EXISTS anonymized_at TIMESTAMP WITH TIME ZONE;
+        `);
 
         // 2. Tabla Proveedores
         await client.query(`CREATE TABLE IF NOT EXISTS proveedores (
@@ -99,8 +114,32 @@ export async function inicializarBaseDeDatos() {
             estado TEXT DEFAULT 'Contratado'
         )`);
 
+        // 10. LOPDP: Tabla de Registro de Consentimiento Informado
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS user_consents (
+                id SERIAL PRIMARY KEY,
+                user_id VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
+                policy_version VARCHAR(20) NOT NULL DEFAULT 'v1.0',
+                terms_accepted BOOLEAN DEFAULT TRUE,
+                data_processing_accepted BOOLEAN DEFAULT TRUE,
+                consent_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        // 11. LOPDP: Tabla de Logs de Auditoría
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                id SERIAL PRIMARY KEY,
+                table_name TEXT,
+                action_type TEXT,
+                record_id TEXT,
+                changed_data JSONB,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
         // ==============================================================
-        // ESTRUCTURAS AVANZADAS POSTGRESQL (Para proyecto FIEC - ESPOL)
+        // ESTRUCTURAS AVANZADAS POSTGRESQL
         // ==============================================================
 
         // A. Función en PL/pgSQL y Disparador (Trigger) para Presupuesto
@@ -128,7 +167,7 @@ export async function inicializarBaseDeDatos() {
             EXECUTE FUNCTION recalcular_estado_presupuesto();
         `);
 
-        // B. Vista Consultiva Compleja (CREATE VIEW con JOINs y Agregaciones)
+        // B. Vista Consultiva Compleja
         await client.query(`
             CREATE OR REPLACE VIEW v_resumen_novias AS
             SELECT 
@@ -147,6 +186,30 @@ export async function inicializarBaseDeDatos() {
             LEFT JOIN checklist c ON u.id = c.user_id
             WHERE u.role = 'novia'
             GROUP BY u.id, u.name, u.email, wp.wedding_date, wp.budget_limit;
+        `);
+
+        // C. LOPDP: Procedimiento Almacenado para "Derecho al Olvido"
+        await client.query(`
+            CREATE OR REPLACE FUNCTION sp_anonimizar_usuario(p_user_id VARCHAR)
+            RETURNS VOID AS $$
+            BEGIN
+                UPDATE users
+                SET name = 'Usuario Anonimizado',
+                    email = 'deleted_' || p_user_id || '@anon.weddingweb.ec',
+                    password = 'ACCOUNT_DELETED',
+                    is_anonymized = TRUE,
+                    anonymized_at = CURRENT_TIMESTAMP
+                WHERE id = p_user_id;
+
+                UPDATE wedding_profiles
+                SET partner_name = 'ANONIMO',
+                    avatar = NULL
+                WHERE user_id = p_user_id;
+
+                INSERT INTO audit_logs(table_name, action_type, record_id, changed_data)
+                VALUES ('users', 'LOPDP_ANONYMIZE', p_user_id, '{"status": "Solicitud de Supresión Ejecutada"}'::jsonb);
+            END;
+            $$ LANGUAGE plpgsql;
         `);
 
         // ==============================================================
@@ -172,54 +235,8 @@ export async function inicializarBaseDeDatos() {
         }
 
         client.release();
-        console.log("✅ Tablas, Triggers y Vistas sincronizadas en NEON (PostgreSQL).");
+        console.log("✅ Tablas, Triggers, Vistas, Funciones LOPDP y Estructuras de Seguridad sincronizadas en NEON (PostgreSQL).");
     } catch (error) {
         console.error("❌ Error inicializando BD:", error);
     }
 }
-
-// --- 12. LOPDP: Tabla de Registro de Consentimiento Informado ---
-await client.query(`
-    CREATE TABLE IF NOT EXISTS user_consents (
-        id SERIAL PRIMARY KEY,
-        user_id VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
-        policy_version VARCHAR(20) NOT NULL DEFAULT 'v1.0',
-        terms_accepted BOOLEAN DEFAULT TRUE,
-        data_processing_accepted BOOLEAN DEFAULT TRUE,
-        consent_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
-`);
-
-// --- 13. LOPDP: Agregar banderas de anonimización en 'users' ---
-await client.query(`
-    ALTER TABLE users 
-    ADD COLUMN IF NOT EXISTS is_anonymized BOOLEAN DEFAULT FALSE,
-    ADD COLUMN IF NOT EXISTS anonymized_at TIMESTAMP WITH TIME ZONE;
-`);
-
-// --- 14. LOPDP: Procedimiento Almacenado para "Derecho al Olvido" (PL/pgSQL) ---
-await client.query(`
-    CREATE OR REPLACE FUNCTION sp_anonimizar_usuario(p_user_id VARCHAR)
-    RETURNS VOID AS $$
-    BEGIN
-        -- 1. Encriptar/mascarar datos de identificación personal (PII) en la tabla 'users'
-        UPDATE users
-        SET name = 'Usuario Anonimizado',
-            email = 'deleted_' || p_user_id || '@anon.weddingweb.ec',
-            password = 'ACCOUNT_DELETED',
-            is_anonymized = TRUE,
-            anonymized_at = CURRENT_TIMESTAMP
-        WHERE id = p_user_id;
-
-        -- 2. Limpiar datos personales sensibles en 'wedding_profiles'
-        UPDATE wedding_profiles
-        SET partner_name = 'ANONIMO',
-            avatar = NULL
-        WHERE user_id = p_user_id;
-
-        -- 3. Registrar la acción en la tabla de auditoría para respaldo legal
-        INSERT INTO audit_logs(table_name, action_type, record_id, changed_data)
-        VALUES ('users', 'LOPDP_ANONYMIZE', p_user_id, '{"status": "Solicitud de Supresión Ejecutada"}'::jsonb);
-    END;
-    $$ LANGUAGE plpgsql;
-`);

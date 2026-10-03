@@ -15,7 +15,9 @@
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.22.1",
+    "express-rate-limit": "^8.7.0",
     "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^10.0.14",
     "openai": "^6.16.0",
     "pg": "^8.17.1"
   }
