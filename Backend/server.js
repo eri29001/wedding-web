@@ -10,6 +10,10 @@ import calendarRoutes from './routes/calendarRoutes.js';
 import checklistRoutes from './routes/checklistRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import providerRoutes from './routes/providerRoutes.js';
+import privacyRoutes from './routes/privacyRoutes.js';
+
+// ...
+app.use('/api', privacyRoutes);
 
 dotenv.config();
 

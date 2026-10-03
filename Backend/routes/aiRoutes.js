@@ -1,10 +1,20 @@
 import { Router } from 'express';
-import { chatWithIA, generateVows, budgetSimulator } from '../controllers/aiController.js';
+import { 
+    generatePlannerExecutiveReport, 
+    generateBridePersonalAssistant, 
+    generateVows 
+} from '../controllers/aiController.js';
+import { verifyToken, requirePlanner } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
-router.post('/ia/chat', chatWithIA);
-router.post('/generate-vows', generateVows);
-router.post('/budget-simulator', budgetSimulator);
+// Endpoint para la Wedding Planner: Genera reporte diario desde PostgreSQL (Protegido con JWT + Rol Planner)
+router.get('/ai/planner-report', verifyToken, requirePlanner, generatePlannerExecutiveReport);
+
+// Endpoint para la Novia: Asistente personalizado con datos de su BD
+router.get('/ai/bride-assistant/:userId', verifyToken, generateBridePersonalAssistant);
+
+// Endpoint para Votos Matrimoniales
+router.post('/ai/generate-vows', verifyToken, generateVows);
 
 export default router;

@@ -1,5 +1,11 @@
 import bcrypt from 'bcryptjs';
-import { query } from '../config/db.js';
+import { pool, query } from '../config/db.js'; // Importamos 'pool' para transacciones atómicas
+
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { pool, query } from '../config/db.js';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'secreto_super_seguro_wedding_web_2026';
 
 export const login = async (req, res) => {
     const { email, password } = req.body;
@@ -13,7 +19,20 @@ export const login = async (req, res) => {
         const match = await bcrypt.compare(password, user.password);
 
         if (match) {
-            res.json({ success: true, userId: user.id, role: user.role, name: user.name });
+            // Generar Token JWT con vigencia de 24 horas
+            const token = jwt.sign(
+                { userId: user.id, role: user.role, name: user.name },
+                JWT_SECRET,
+                { expiresIn: '24h' }
+            );
+
+            res.json({ 
+                success: true, 
+                token: token,
+                userId: user.id, 
+                role: user.role, 
+                name: user.name 
+            });
         } else {
             res.status(401).json({ success: false, message: 'Contraseña incorrecta.' });
         }
@@ -27,9 +46,16 @@ export const register = async (req, res) => {
     if (!email || !password || !name) {
         return res.status(400).json({ success: false, message: 'Faltan campos obligatorios.' });
     }
+
+    // Reservamos un cliente dedicado del pool para controlar la transacción
+    const client = await pool.connect();
+
     try {
-        const exist = await query("SELECT id FROM users WHERE email = $1", [email]);
+        await client.query('BEGIN'); // Inicio de Transacción ACID
+
+        const exist = await client.query("SELECT id FROM users WHERE email = $1", [email]);
         if (exist.rows.length > 0) {
+            await client.query('ROLLBACK');
             return res.status(400).json({ success: false, message: 'Correo ya registrado.' });
         }
 
@@ -37,18 +63,25 @@ export const register = async (req, res) => {
         const newId = `user_${Date.now()}`;
         const userRole = role || 'novia';
 
-        await query(
+        // Operación 1: Insertar en la tabla 'users'
+        await client.query(
             "INSERT INTO users (id, email, password, name, role) VALUES ($1, $2, $3, $4, $5)",
             [newId, email, hashedPassword, name, userRole]
         );
 
+        // Operación 2: Insertar en la tabla 'wedding_profiles' (Dependiente)
         if (userRole === 'novia') {
-            await query("INSERT INTO wedding_profiles (user_id) VALUES ($1)", [newId]);
+            await client.query("INSERT INTO wedding_profiles (user_id) VALUES ($1)", [newId]);
         }
 
+        await client.query('COMMIT'); // Se confirman los cambios si ambas operaciones tuvieron éxito
         res.status(201).json({ success: true, userId: newId, message: 'Usuario registrado correctamente.' });
+
     } catch (err) {
+        await client.query('ROLLBACK'); // Se revierten todas las inserciones en caso de fallo
         res.status(500).json({ success: false, error: err.message });
+    } finally {
+        client.release(); // Se libera el cliente de vuelta al pool
     }
 };
 
