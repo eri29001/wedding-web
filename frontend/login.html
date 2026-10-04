@@ -8,10 +8,18 @@
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="login.css">
+    
+    <!-- Guardián de sesión: redirige al dashboard si ya existe un token activo -->
+    <script src="guard.js"></script>
 </head>
 
 <body class="login-body">
     
+    <!-- BOTÓN PARA REGRESAR A LA PÁGINA PRINCIPAL -->
+    <a href="index.html" class="back-to-home" title="Volver a la página principal">
+        <i class="fas fa-arrow-left"></i> Volver al inicio
+    </a>
+
     <div class="login-container">
         <img src="assets/logo.webp" alt="Logo Andrea Figueroa" class="login-logo">
         
@@ -33,7 +41,8 @@
                 <a href="#" id="forgotLink">¿Olvidaste tu contraseña?</a>
             </div>
 
-            <div id="mensajeError" class="error-box">
+            <!-- Contenedor de errores manejado por auth.js -->
+            <div id="mensajeError" class="error-box" style="display: none;">
                 <i class="fas fa-exclamation-circle"></i> <span id="textoError"></span>
             </div>
                         
@@ -41,19 +50,22 @@
         </form>
     </div>
 
+    <!-- MODAL DE RECUPERACIÓN DE CONTRASEÑA -->
     <div id="recoveryModal" class="modal">
         <div class="modal-content">
             <h3>Recuperar Contraseña</h3>
             <p>Ingresa tu correo electrónico y te enviaremos las instrucciones para restablecer tu clave.</p>
-            
-            <input type="email" id="recoveryEmail" placeholder="Ej: novia@gmail.com">
-            
-            <div class="modal-buttons">
-                <button id="btnCancel" class="btn-cancel">Cancelar</button>
-                <button id="btnSend" class="btn-confirm">Enviar Correo</button>
-            </div>
+        
+        <input type="email" id="recoveryEmail" placeholder="Ej: novia@gmail.com">
+        <!-- El div de mensaje se generará dinámicamente aquí si no existe -->
+        <div id="recoveryMsg" style="display: none;"></div>
+        
+        <div class="modal-buttons">
+            <button id="btnCancel" class="btn-cancel" type="button">Cancelar</button>
+            <button id="btnSend" class="btn-confirm" type="button">Enviar Correo</button>
         </div>
     </div>
+
     <script src="auth.js"></script>
 </body>
 </html>

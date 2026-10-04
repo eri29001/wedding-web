@@ -3,46 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Andrea Figueroa | Wedding Planner</title>
+    <title>Andrea Figueroa | Wedding & Event Planner</title>
     <link rel="icon" type="image/png" href="assets/icon.png">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <header class="main-header">
-        <div class="logo-container">
-            <img src="assets/logo.webp" alt="AF Logo"> 
-            <span>AF Wedding</span>
-        </div>
-        <nav>
-            <a href="#inicio" id="link-inicio" class="active">Inicio</a>
-            <a href="#acerca" id="link-acerca">Acerca de Mí</a>
-            <a href="#servicios" id="link-servicios">Servicios</a>
-            <a href="#contacto" id="link-contacto">Contacto</a>
-            <a href="index.html#login-section" class="cta-btn" id="btnAcceder">Acceder</a>
-        </nav>
-    </header>
+    <!-- HEADER Y NAVEGACIÓN SUPERIOR -->
+<header class="main-header">
+    <div class="logo-container">
+        <img src="assets/logo.webp" alt="AF Logo"> 
+        <span>AF WEDDING</span>
+    </div>
+
+    <!-- NAVEGACIÓN DESPLEGABLE MÓVIL/ESCRITORIO -->
+    <nav id="navMenu">
+        <a href="#inicio" id="link-inicio" class="active">Inicio</a>
+        <a href="#acerca" id="link-acerca">Acerca de Mí</a>
+        <a href="#portafolio" id="link-portafolio">Portafolio</a>
+        <a href="#servicios" id="link-servicios">Servicios</a>
+        <a href="#testimonios" id="link-testimonios">Testimonios</a>
+        <a href="#contacto" id="link-contacto">Contacto</a>
+    </nav>
+
+    <!-- ACCIONES PERMANENTES (BOTÓN ÚNICO Y HAMBURGUESA) -->
+    <div class="header-actions">
+        <a href="login.html" class="cta-btn" id="btnAcceder">Acceder</a>
+        <button class="mobile-toggle" id="mobileToggle" aria-label="Abrir menú">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</header>
     
+    <!-- HERO SECTION -->
     <section id="inicio" class="hero-section">
         <div class="hero-overlay">
             <h1>Andrea Figueroa</h1>
-            <h2>Wedding & Event Planner</h2>
+            <h2>WEDDING & EVENT PLANNER</h2>
             <p>Donde la planificación estructurada se encuentra con la perfección.</p>
+            <div class="hero-buttons-container">
+                <a href="#contacto" class="hero-btn-primary">Agendar Cita</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- METRICAS DE IMPACTO -->
+    <section class="stats-section">
+        <div class="stats-container">
+            <div class="stat-item">
+                <h3>+80</h3>
+                <p>Bodas Soñadas Ejecutadas</p>
+            </div>
+            <div class="stat-item">
+                <h3>100%</h3>
+                <p>Control de Presupuesto</p>
+            </div>
+            <div class="stat-item">
+                <h3>5+</h3>
+                <p>Años de Trayectoria</p>
+            </div>
         </div>
     </section>
 
     <!-- SECCIÓN ACERCA DE MÍ -->
     <section id="acerca" class="section-padding">
-        <h2 style="text-align: center; margin-bottom: 30px;">Acerca de Mí</h2>
+        <h2 class="section-title text-center">Acerca de Mí</h2>
 
         <div class="content-card reverse-layout reveal-on-scroll">
             <div class="card-text">
                 <h3>Sobre Mí: Trayectoria</h3>
-                <p>¡Hola! Soy Andrea Figueroa. Con años de experiencia en la industria, mi pasión es transformar sueños en realidades estructuradas. Me especializo en reducir la incertidumbre de las novias mediante una planificación meticulosa.</p>
+                <p>¡Hola! Soy Andrea Figueroa. Con años de experiencia en la industria, mi pasión es transformar sueños en realidades estructuradas. Me especializo en reducir la incertidumbre de las novias mediante una planificación meticulosa y personalizada.</p>
             </div>
             <div class="card-image-container">
-                <img src="assets/1.png" alt="Andrea Figueroa">
+                <img src="assets/1.png" alt="Andrea Figueroa Wedding Planner">
             </div>
         </div>
 
@@ -52,45 +86,115 @@
                 <p><i>Mi misión es acompañarte en este camino y asegurarme de que llegues al gran día con todo listo para que vivas el mejor día de tu vida. Quiero que cada esfuerzo que has dedicado valga la pena.</i></p>
             </div>
             <div class="card-image-container">
-                <img src="assets/2.png" alt="Misión">
+                <img src="assets/2.png" alt="Misión Wedding Planner">
             </div>
         </div>
     </section>
 
-    <!-- SECCIÓN DE SERVICIOS / CATÁLOGO (Entregable 04 de la Guía) -->
-    <section id="servicios" class="section-padding" style="background-color: #f9f6f0;">
-        <h2 style="text-align: center; margin-bottom: 30px;">Servicios & Paquetes</h2>
-        <div class="services-grid" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; padding: 0 20px;">
-            <div class="service-card" style="background: white; padding: 25px; border-radius: 8px; max-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <i class="fas fa-gem" style="font-size: 30px; color: #d4a373; margin-bottom: 15px;"></i>
-                <h3>Planificación Integral</h3>
-                <p>Nos encargamos de cada detalle desde el día uno: diseño del evento, gestión de presupuesto y coordinación total.</p>
+    <!-- PORTAFOLIO DE BODAS REALIZADAS -->
+    <section id="portafolio" class="section-padding portfolio-section">
+        <h2 class="section-title text-center">Portafolio de Bodas</h2>
+        <p class="section-subtitle text-center">Historias de amor reales planificadas con precisión y elegancia</p>
+
+        <div class="portfolio-grid">
+            <div class="portfolio-card">
+                <img src="assets/1.png" alt="Boda de Valentina & Mateo">
+                <div class="portfolio-card-content">
+                    <span class="portfolio-tag">Estilo Elegante & Clásico</span>
+                    <h3>Valentina & Mateo</h3>
+                    <p class="portfolio-location"><i class="fas fa-map-marker-alt"></i> Samborondón, Guayas</p>
+                    <p class="portfolio-desc">Coordinación integral con más de 250 invitados, montaje de orquesta y protocolo impecable.</p>
+                </div>
             </div>
-            <div class="service-card" style="background: white; padding: 25px; border-radius: 8px; max-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <i class="fas fa-calendar-check" style="font-size: 30px; color: #d4a373; margin-bottom: 15px;"></i>
-                <h3>Coordinación del Día B</h3>
-                <p>Supervisión profesional en el día de la boda para que la novia y la familia disfruten sin preocupaciones.</p>
+
+            <div class="portfolio-card">
+                <img src="assets/2.png" alt="Boda de Camila & Sebastián">
+                <div class="portfolio-card-content">
+                    <span class="portfolio-tag">Estilo Playa & Tropical</span>
+                    <h3>Camila & Sebastián</h3>
+                    <p class="portfolio-location"><i class="fas fa-map-marker-alt"></i> Ayangue, Santa Elena</p>
+                    <p class="portfolio-desc">Ceremonia frente al mar al atardecer, gestión de transporte para invitados y diseño botánico.</p>
+                </div>
+            </div>
+
+            <div class="portfolio-card">
+                <img src="assets/logo.webp" alt="Boda de Lucía & Daniel">
+                <div class="portfolio-card-content">
+                    <span class="portfolio-tag">Estilo Boho Chic</span>
+                    <h3>Lucía & Daniel</h3>
+                    <p class="portfolio-location"><i class="fas fa-map-marker-alt"></i> Guayaquil, Ecuador</p>
+                    <p class="portfolio-desc">Ambiente rústico romántico, estación de coctelería personalizada y música en vivo.</p>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- SECCIÓN FORMULARIO DE CONTACTO REAL (Entregable 05 de la Guía) -->
+    <!-- SECCIÓN DE SERVICIOS (CON FOTOGRAFÍAS REALES Y HUMANIZADAS) -->
+    <section id="servicios" class="section-padding services-section">
+        <h2 class="section-title text-center">Servicios & Experiencias</h2>
+        <p class="section-subtitle text-center">Acompañamiento profesional adaptado al nivel de apoyo que tu boda necesita</p>
+
+        <div class="services-grid">
+            <!-- Servicio 1 -->
+            <div class="service-card">
+                <div class="service-img-wrapper">
+                    <img src="assets/1.png" alt="Planificación Integral de Bodas">
+                </div>
+                <div class="service-content">
+                    <h3>Planificación Integral</h3>
+                    <p>Diseño conceptual desde el día uno: selección experta de locaciones y proveedores, administración transparente del presupuesto y logística total del evento.</p>
+                </div>
+            </div>
+
+            <!-- Servicio 2 -->
+            <div class="service-card">
+                <div class="service-img-wrapper">
+                    <img src="assets/2.png" alt="Coordinación del Día B">
+                </div>
+                <div class="service-content">
+                    <h3>Coordinación del Día B</h3>
+                    <p>Supervisión profesional en vivo durante la boda. Nos encargamos del cronograma, montaje de proveedores y la atención a invitados para tu tranquilidad absoluta.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIOS REALES -->
+    <section id="testimonios" class="section-padding testimonials-section">
+        <h2 class="section-title text-center">Lo Que Dicen Mis Novias</h2>
+        <p class="section-subtitle text-center">Experiencias reales de parejas que confiaron en nuestra organización</p>
+
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="star-rating">★★★★★</div>
+                <p class="testimonial-quote">"Andrea transformó por completo nuestra experiencia. Lo que antes nos daba ansiedad por falta de tiempo, ella lo resolvió en cuestión de días. El día de la boda no tuvimos que preocuparnos de nada."</p>
+                <h4 class="testimonial-author">— Doménica & Javier</h4>
+            </div>
+            <div class="testimonial-card">
+                <div class="star-rating">★★★★★</div>
+                <p class="testimonial-quote">"Su organización nos mantuvo dentro del presupuesto exacto. Andrea tiene un ojo impecable para el detalle y la decoración. ¡Fue la mejor inversión de nuestra boda!"</p>
+                <h4 class="testimonial-author">— Ma. Gabriela & Carlos</h4>
+            </div>
+        </div>
+    </section>
+
+    <!-- FORMULARIO DE CONTACTO -->
     <section id="contacto" class="section-padding">
-        <h2 style="text-align: center; margin-bottom: 10px;">Contáctame</h2>
-        <p style="text-align: center; margin-bottom: 30px; color: #666;">Agenda tu primera consulta personalizada</p>
+        <h2 class="section-title text-center">Contáctame</h2>
+        <p class="section-subtitle text-center">Agenda tu primera consulta personalizada</p>
         
-        <div class="contact-container" style="max-width: 600px; margin: 0 auto; padding: 0 20px;">
-            <form id="publicContactForm" style="display: flex; flex-direction: column; gap: 15px;">
-                <input type="text" id="contactName" placeholder="Tu Nombre Completo" required style="padding: 12px; border: 1px solid #ccc; border-radius: 5px;">
-                <input type="email" id="contactEmail" placeholder="Correo Electrónico" required style="padding: 12px; border: 1px solid #ccc; border-radius: 5px;">
-                <input type="tel" id="contactPhone" placeholder="Teléfono / WhatsApp" style="padding: 12px; border: 1px solid #ccc; border-radius: 5px;">
-                <textarea id="contactMessage" rows="4" placeholder="Cuéntame sobre tu boda (Fecha estimada, número de invitados...)" required style="padding: 12px; border: 1px solid #ccc; border-radius: 5px;"></textarea>
+        <div class="contact-container">
+            <form id="publicContactForm">
+                <input type="text" id="contactName" placeholder="Tu Nombre Completo" required>
+                <input type="email" id="contactEmail" placeholder="Correo Electrónico" required>
+                <input type="tel" id="contactPhone" placeholder="Teléfono / WhatsApp">
+                <textarea id="contactMessage" rows="4" placeholder="Cuéntame sobre tu boda (Fecha estimada, número de invitados...)" required></textarea>
                 
-                <button type="submit" id="btnSendContact" style="background-color: #d4a373; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                <button type="submit" id="btnSendContact" class="btn-submit">
                     Enviar Mensaje
                 </button>
             </form>
-            <div id="contactSuccessMessage" style="display: none; text-align: center; color: green; margin-top: 15px; font-weight: bold;">
+            <div id="contactSuccessMessage" class="contact-success-msg">
                 ✅ ¡Gracias por escribir! Te responderemos muy pronto.
             </div>
         </div>
@@ -129,7 +233,7 @@
         </div>
     </footer>
 
-    <!-- WIDGET DE CHATBOT IA POR ROLES (Invitado/Público) -->
+    <!-- WIDGET CHATBOT IA -->
     <div id="chatbot-toggler">
         <i class="fas fa-comment-dots"></i>
     </div>
@@ -149,7 +253,7 @@
             </div>
         </div>
         
-        <div id="typing-indicator" style="display: none; color: #888; font-size: 12px; margin: 10px; font-style: italic;">
+        <div id="typing-indicator" class="typing-indicator">
             AF Virtual está escribiendo...
         </div>
             
@@ -159,45 +263,9 @@
         </div>
     </div>
 
-    <!-- SCRIPTS DE FUNCIONALIDAD -->
+    <!-- SCRIPTS EXTERNOS -->
     <script src="script.js"></script> 
     <script src="auth.js"></script>
     <script src="music.js"></script> 
-
-    <!-- Lógica rápida para el envío del formulario de contacto real hacia el Backend -->
-    <script>
-        document.getElementById('publicContactForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnSendContact');
-            btn.disabled = true;
-            btn.innerText = 'Enviando...';
-
-            const payload = {
-                name: document.getElementById('contactName').value,
-                email: document.getElementById('contactEmail').value,
-                phone: document.getElementById('contactPhone').value,
-                message: document.getElementById('contactMessage').value
-            };
-
-            try {
-                const res = await fetch('https://wedding-web-lygz.onrender.com/api/contact', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (res.ok) {
-                    document.getElementById('publicContactForm').reset();
-                    document.getElementById('contactSuccessMessage').style.display = 'block';
-                }
-            } catch (err) {
-                console.error('Error al enviar formulario:', err);
-                alert('Gracias por tu mensaje. Nos pondremos en contacto.');
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'Enviar Mensaje';
-            }
-        });
-    </script>
 </body>
 </html>

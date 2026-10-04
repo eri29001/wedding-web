@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    // LÓGICA ORIGINAL 
-
+    // ======================================================
+    // 1. LÓGICA DE SCROLL Y REVEAL EN NAVEGACIÓN
+    // ======================================================
     const sections = document.querySelectorAll("section, footer");
     const navLinks = document.querySelectorAll(".main-header nav a");
     const reveals = document.querySelectorAll(".reveal-on-scroll");
@@ -24,7 +25,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         navLinks.forEach((link) => {
             link.classList.remove("active");
-            if (link.getAttribute("href").includes(current)) {
+            const href = link.getAttribute("href");
+            if (href && href.includes(current)) {
                 link.classList.add("active");
             }
         });
@@ -32,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function reveal() {
         const windowHeight = window.innerHeight;
-        const elementVisible = 100;
+        const elementVisible = 80;
 
         reveals.forEach((reveal) => {
             const elementTop = reveal.getBoundingClientRect().top;
@@ -49,8 +51,101 @@ document.addEventListener('DOMContentLoaded', function() {
     updateMenu();
     reveal();
 
-    // PARTE 2: CHATBOT DE INVITADO 
 
+    // ======================================================
+    // 2. MENÚ RESPONSIVO PARA MÓVIL (BOTÓN HAMBURGUESA)
+    // ======================================================
+    const mobileToggle = document.getElementById("mobileToggle");
+    const navMenu = document.getElementById("navMenu") || document.querySelector(".main-header nav");
+
+    if (mobileToggle && navMenu) {
+        // Toggle abrir / cerrar menú táctil
+        mobileToggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            navMenu.classList.toggle("active");
+            const isOpen = navMenu.classList.contains("active");
+            const icon = mobileToggle.querySelector("i");
+            if (icon) {
+                icon.className = isOpen ? "fas fa-times" : "fas fa-bars";
+            }
+        });
+
+        // Cerrar menú al presionar cualquier enlace
+        navLinks.forEach((link) => {
+            link.addEventListener("click", () => {
+                if (navMenu.classList.contains("active")) {
+                    navMenu.classList.remove("active");
+                    const icon = mobileToggle.querySelector("i");
+                    if (icon) icon.className = "fas fa-bars";
+                }
+            });
+        });
+
+        // Cerrar menú al hacer clic fuera
+        document.addEventListener("click", (e) => {
+            if (!navMenu.contains(e.target) && !mobileToggle.contains(e.target) && navMenu.classList.contains("active")) {
+                navMenu.classList.remove("active");
+                const icon = mobileToggle.querySelector("i");
+                if (icon) icon.className = "fas fa-bars";
+            }
+        });
+    }
+
+
+    // ======================================================
+    // 3. ENVÍO DEL FORMULARIO DE CONTACTO AL BACKEND
+    // ======================================================
+    const contactForm = document.getElementById("publicContactForm");
+
+    if (contactForm) {
+        contactForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById("btnSendContact");
+            const successMsg = document.getElementById("contactSuccessMessage");
+            const originalText = btn ? btn.innerText : "Enviar Mensaje";
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "Enviando...";
+            }
+            if (successMsg) successMsg.style.display = "none";
+
+            const payload = {
+                name: document.getElementById("contactName")?.value.trim() || "",
+                email: document.getElementById("contactEmail")?.value.trim() || "",
+                phone: document.getElementById("contactPhone")?.value.trim() || "",
+                message: document.getElementById("contactMessage")?.value.trim() || ""
+            };
+
+            try {
+                const res = await fetch("https://wedding-web-lygz.onrender.com/api/contact", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    contactForm.reset();
+                    if (successMsg) successMsg.style.display = "block";
+                } else {
+                    alert("¡Gracias por escribir! Te responderemos muy pronto.");
+                }
+            } catch (err) {
+                console.error("Error al enviar formulario:", err);
+                alert("¡Gracias por escribir! Nos pondremos en contacto contigo pronto.");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                }
+            }
+        });
+    }
+
+
+    // ======================================================
+    // 4. CHATBOT PÚBLICO PARA INVITADOS / VISITANTES
+    // ======================================================
     const chatbotToggler = document.querySelector("#chatbot-toggler");
     const chatbotContainer = document.querySelector("#chatbot-container");
     const closeChatBtn = document.querySelector(".close-chat-btn");
@@ -59,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatBox = document.querySelector("#chatbot-messages");
     const typingIndicator = document.querySelector("#typing-indicator");
 
-    // 2.1 Base de Conocimiento (Lógica "Superficial")
+    // 4.1 Base de Conocimiento Superficial
     const getBotResponse = (input) => {
         const lowerInput = input.toLowerCase();
 
@@ -85,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Contacto / WhatsApp
         if (lowerInput.includes("contacto") || lowerInput.includes("celular") || lowerInput.includes("teléfono") || lowerInput.includes("whatsapp")) {
-            return "Puedes contactar a Andrea directamente al +593 99 074 0574 o haciendo clic en el icono de WhatsApp en la esquina.";
+            return "Puedes contactar a Andrea directamente al +593 99 074 0574 o haciendo clic en el icono de WhatsApp en la esquina inferior.";
         }
 
         // Citas
@@ -94,10 +189,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Respuesta por defecto
-        return "Esa es una excelente pregunta técnica. Mi asesoría es superficial, pero Andrea es la experta en esos detalles. Te recomiendo contactarla directamente aquí: <a href='https://wa.me/593990740574' target='_blank' style='color: white; text-decoration: underline; font-weight: bold;'>Contactar por WhatsApp</a>";
+        return "Esa es una excelente pregunta. Mi asesoría es inicial, pero Andrea es la experta en esos detalles. Te recomiendo contactarla directamente aquí: <a href='https://wa.me/593990740574' target='_blank' style='color: var(--accent); text-decoration: underline; font-weight: bold;'>Contactar por WhatsApp</a>";
     };
 
-    // 2.2 Funciones de Interfaz del Chat
+    // 4.2 Creador de Mensajes
     const createMessageLi = (message, className) => {
         const div = document.createElement("div");
         div.classList.add("message", className);
@@ -105,37 +200,37 @@ document.addEventListener('DOMContentLoaded', function() {
         return div;
     };
 
+    // 4.3 Manejador de Envíos del Chatbot
     const handleChat = () => {
+        if (!chatInput || !chatBox) return;
         const userMessage = chatInput.value.trim();
         if (!userMessage) return;
 
-        // 1. Añadir mensaje del usuario
+        // Añadir mensaje del usuario
         chatBox.appendChild(createMessageLi(userMessage, "user-message"));
         chatBox.scrollTop = chatBox.scrollHeight;
         chatInput.value = "";
 
-        // 2. Mostrar "Escribiendo..."
-        if(typingIndicator) typingIndicator.style.display = "block";
+        // Indicador "Escribiendo..."
+        if (typingIndicator) typingIndicator.style.display = "block";
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        // 3. Simular espera y responder
+        // Responder con retraso simulado
         setTimeout(() => {
             const botMessage = getBotResponse(userMessage);
-            if(typingIndicator) typingIndicator.style.display = "none";
+            if (typingIndicator) typingIndicator.style.display = "none";
             chatBox.appendChild(createMessageLi(botMessage, "bot-message"));
             chatBox.scrollTop = chatBox.scrollHeight;
         }, 600); 
     };
 
-    // 2.3 Event Listeners del Chat
-
-    // Abrir/Cerrar
-    if(chatbotToggler) {
+    // Event Listeners del Chat
+    if (chatbotToggler) {
         chatbotToggler.addEventListener("click", () => {
             chatbotContainer.classList.toggle("visible");
             chatbotToggler.classList.toggle("hidden");
-            // Mensaje de bienvenida
-            if (chatbotContainer.classList.contains("visible") && chatBox.children.length === 0) {
+            
+            if (chatbotContainer.classList.contains("visible") && chatBox && chatBox.children.length === 0) {
                 setTimeout(() => {
                     const welcomeMsg = "¡Hola! Bienvenida al espacio de Andrea Figueroa. ¿En qué puedo orientarte hoy brevemente antes de que hables con la experta?";
                     chatBox.appendChild(createMessageLi(welcomeMsg, "bot-message"));
@@ -144,17 +239,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    if(closeChatBtn) {
+    if (closeChatBtn) {
         closeChatBtn.addEventListener("click", () => {
             chatbotContainer.classList.remove("visible");
             chatbotToggler.classList.remove("hidden");
         });
     }
 
-    // Enviar mensaje
-    if(sendChatBtn) sendChatBtn.addEventListener("click", handleChat);
+    if (sendChatBtn) sendChatBtn.addEventListener("click", handleChat);
 
-    if(chatInput) {
+    if (chatInput) {
         chatInput.addEventListener("keydown", (e) => {
             if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();

@@ -1,4 +1,4 @@
-/* 1. RESET Y FONDO GLOBAL*/
+/* 1. RESET Y FONDO GLOBAL */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -15,9 +15,41 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
 }
 
-/* 2. TARJETA CRISTALINA (GLASSMORPHISM)*/
+/* BOTÓN DE REGRESAR AL INICIO */
+.back-to-home {
+    position: absolute;
+    top: 25px;
+    left: 30px;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px 20px;
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.back-to-home:hover {
+    background: #D81B60;
+    color: #ffffff;
+    transform: translateX(-3px);
+    border-color: #D81B60;
+    box-shadow: 0 6px 18px rgba(216, 27, 96, 0.3);
+}
+
+/* 2. TARJETA CRISTALINA (GLASSMORPHISM) */
 .login-container {
     background: rgba(255, 255, 255, 0.75); 
     backdrop-filter: blur(15px); 
@@ -41,7 +73,6 @@ body {
     object-fit: contain; 
     border-radius: 50%;
     
-    /* El Borde Rosa */
     border: 3px solid #D81B60;
     padding: 10px; 
     background: rgba(255, 255, 255, 0.9); 
@@ -94,7 +125,7 @@ h2 {
     box-shadow: 0 0 0 4px rgba(216, 27, 96, 0.15);
 }
 
-/* OJO */
+/* OJO CONTRASEÑA */
 .toggle-password {
     position: absolute;
     right: 15px;
@@ -104,7 +135,7 @@ h2 {
     z-index: 5;
 }
 
-/* 5. LINK OLVIDASTE CONTRASEÑA*/
+/* 5. LINK OLVIDASTE CONTRASEÑA */
 .forgot-link {
     text-align: center; 
     margin-top: 10px;
@@ -113,7 +144,7 @@ h2 {
 
 .forgot-link a {
     color: #D81B60; 
-    font-size: 1.1rem; 
+    font-size: 1rem; 
     text-decoration: none;
     font-weight: 600;
     transition: color 0.3s;
@@ -144,21 +175,28 @@ h2 {
     box-shadow: 0 8px 20px rgba(216, 27, 96, 0.4);
 }
 
-/* ERROR */
+/* MENSAJE DE ERROR */
 .error-box {
     display: none;
-    background-color: rgba(255, 235, 238, 0.9);
+    background-color: rgba(255, 235, 238, 0.95);
     color: #c62828;
-    padding: 10px;
+    padding: 12px;
     border-radius: 8px;
     font-size: 0.9rem;
     margin-bottom: 20px;
     border: 1px solid #ffcdd2;
+    text-align: left;
 }
 
-
-/* MODO MOVIL*/
+/* MODO MÓVIL */
 @media (max-width: 480px) {
+    .back-to-home {
+        top: 15px;
+        left: 15px;
+        padding: 8px 15px;
+        font-size: 0.8rem;
+    }
+
     .login-container {
         padding: 25px 20px; 
     }
@@ -173,7 +211,7 @@ h2 {
     }
 }
 
-/* 7. VENTANA RECUPERAR*/
+/* 7. VENTANA RECUPERAR (MODAL) */
 .modal {
     display: none; 
     position: fixed; 
@@ -184,6 +222,7 @@ h2 {
     height: 100%; 
     background-color: rgba(0, 0, 0, 0.6); 
     backdrop-filter: blur(5px); 
+    -webkit-backdrop-filter: blur(5px);
     justify-content: center;
     align-items: center;
 }
@@ -221,7 +260,6 @@ h2 {
     font-size: 1rem;
 }
 
-/* Botones del Modal */
 .modal-buttons {
     display: flex;
     justify-content: space-between;
@@ -253,8 +291,31 @@ h2 {
 .btn-confirm:hover { background-color: #ad1457; }
 .btn-cancel:hover { background-color: #e0e0e0; }
 
-/* Animación suave */
+/* Animación de entrada para el modal */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* ======================================================
+   ESTILOS ESPECÍFICOS PARA RESET-PASSWORD
+   ====================================================== */
+.login-subtitle {
+    color: #555555;
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+    line-height: 1.4;
+}
+
+/* Caja de Éxito al actualizar clave */
+.success-box {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    border: 1px solid #c8e6c9;
+    text-align: center;
+    font-weight: 600;
 }

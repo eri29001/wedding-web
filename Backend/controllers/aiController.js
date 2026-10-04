@@ -1,5 +1,41 @@
 import { model } from '../config/gemini.js';
 import { query } from '../config/db.js';
+import { model } from '../config/gemini.js';
+
+export const askAI = async (req, res) => {
+    try {
+        const { prompt, fileBase64, mimeType } = req.body;
+
+        if (!prompt && !fileBase64) {
+            return res.status(400).json({ success: false, message: 'Se requiere un texto o documento.' });
+        }
+
+        const contents = [];
+
+        // Si la novia adjuntó un PDF o imagen, se pasa como objeto inlineData
+        if (fileBase64 && mimeType) {
+            contents.push({
+                inlineData: {
+                    data: fileBase64, // String Base64 sin el prefijo "data:...;base64,"
+                    mimeType: mimeType // 'application/pdf', 'image/jpeg', etc.
+                }
+            });
+        }
+
+        // Prompt de contexto e instrucción del usuario
+        const systemPrompt = "Eres el asistente virtual experto de Andrea Figueroa Wedding Planner. Ayuda a la novia a analizar cotizaciones, contratos o dudas del evento.";
+        contents.push(`${systemPrompt}\n\nPregunta de la novia: ${prompt || 'Analiza este documento y resume los puntos clave.'}`);
+
+        const result = await model.generateContent(contents);
+        const response = await result.response;
+        
+        res.json({ success: true, reply: response.text() });
+
+    } catch (err) {
+        console.error('Error en AI Controller:', err);
+        res.status(500).json({ success: false, error: 'Error procesando la consulta con la IA.' });
+    }
+};
 
 // =========================================================================
 // 1. AUTOMATIZACIÓN PARA LA WEDDING PLANNER (Ahorro de 5 horas de gestión)
