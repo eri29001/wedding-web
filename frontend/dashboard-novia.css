@@ -663,3 +663,68 @@ body.show-chatbot .chatbot { opacity: 1; pointer-events: auto; transform: scale(
     font-size: 1.1rem;
     font-weight: 600;
 }
+
+/* Botones de Redes Sociales */
+.social-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: bold;
+    text-decoration: none;
+    transition: transform 0.2s, opacity 0.2s;
+}
+.social-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+.social-btn.instagram { background: #E1306C; color: #fff; }
+.social-btn.tiktok { background: #000000; color: #fff; }
+.social-btn.web { background: #4A148C; color: #fff; }
+
+/* Insignia Verificado */
+.badge-verified {
+    display: inline-block;
+    background: #E8F5E9;
+    color: #2E7D32;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+
+/* Grid de Destacables (Skills) */
+.vendor-badges-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.skill-badge-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #fdfdfd;
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
+}
+.skill-badge-item .badge-icon {
+    font-size: 1.2rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.skill-badge-item .badge-info strong {
+    display: block;
+    font-size: 0.85rem;
+    color: #333;
+}
+.skill-badge-item .badge-info p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #777;
+}

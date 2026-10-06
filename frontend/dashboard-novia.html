@@ -29,6 +29,7 @@
 
 <body>
 
+    <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
     <nav class="navbar" role="navigation" aria-label="Navegación principal">
         <div class="logo">AF Wedding</div>
         <div class="user-controls flex-center-gap">
@@ -98,26 +99,41 @@
         <!-- GRID PRINCIPAL -->
         <main class="dashboard-grid">
             
-            <!-- SECCIÓN AGENDA & CALENDARIO -->
-            <section class="card calendar-card" aria-labelledby="heading-agenda">
-                <div class="card-header-clean flex-between-center mb-20">
-                    <h2 id="heading-agenda"><i class="far fa-calendar-alt" aria-hidden="true"></i> Mi Agenda</h2>
-                    <button type="button" onclick="openVideoModal()" title="Ver tutorial" class="btn btn-ghost btn-tutorial" aria-label="Ver tutorial de ayuda">?</button>
-                </div>
+            <!-- COLUMNA IZQUIERDA: AGENDA Y PROVEEDORES RECOMENDADOS -->
+            <div class="left-column flex-column gap-30">
                 
-                <div class="pastel-filters-container flex-center-gap mb-15" role="group" aria-label="Filtros del calendario">
-                    <button type="button" class="filter-pill active" onclick="filtrarCalendario('all', this)">Todos</button>
-                    <button type="button" class="filter-pill pill-green" onclick="filtrarCalendario('completed', this)">Completados</button>
-                    <button type="button" class="filter-pill pill-red" onclick="filtrarCalendario('urgent', this)">Urgentes</button>
-                    <button type="button" class="filter-pill pill-yellow" onclick="filtrarCalendario('medium', this)">Medio</button>
-                    <button type="button" class="filter-pill pill-blue" onclick="filtrarCalendario('low', this)">Bajo</button>
-                </div>
-                
-                <div id="calendar"></div>
-            </section>
+                <!-- SECCIÓN AGENDA & CALENDARIO -->
+                <section class="card calendar-card" aria-labelledby="heading-agenda">
+                    <div class="card-header-clean flex-between-center mb-20">
+                        <h2 id="heading-agenda"><i class="far fa-calendar-alt" aria-hidden="true"></i> Mi Agenda</h2>
+                        <button type="button" onclick="openVideoModal()" title="Ver tutorial" class="btn btn-ghost btn-tutorial" aria-label="Ver tutorial de ayuda">?</button>
+                    </div>
+                    
+                    <div class="pastel-filters-container flex-center-gap mb-15" role="group" aria-label="Filtros del calendario">
+                        <button type="button" class="filter-pill active" onclick="filtrarCalendario('all', this)">Todos</button>
+                        <button type="button" class="filter-pill pill-green" onclick="filtrarCalendario('completed', this)">Completados</button>
+                        <button type="button" class="filter-pill pill-red" onclick="filtrarCalendario('urgent', this)">Urgentes</button>
+                        <button type="button" class="filter-pill pill-yellow" onclick="filtrarCalendario('medium', this)">Medio</button>
+                        <button type="button" class="filter-pill pill-blue" onclick="filtrarCalendario('low', this)">Bajo</button>
+                    </div>
+                    
+                    <div id="calendar"></div>
+                </section>
 
-            <!-- COLUMNA DERECHA: TAREAS, INVITADOS Y PRESUPUESTO -->
-            <div class="right-column">
+                <!-- PROVEEDORES RECOMENDADOS -->
+                <section class="card section-blue" aria-labelledby="heading-prov-rec">
+                    <div class="card-header-clean">
+                        <h2 id="heading-prov-rec"><i class="fas fa-magic" aria-hidden="true"></i> Proveedores recomendados</h2>
+                    </div>
+                    <div class="vendors-list-vertical" id="recommended-vendors-list">
+                        <p class="text-muted text-center p-20">Cargando recomendaciones...</p>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- COLUMNA DERECHA: TAREAS, INVITADOS, PRESUPUESTO Y MIS PROVEEDORES -->
+            <div class="right-column flex-column gap-30">
 
                 <!-- WIDGET TAREAS PRIORITARIAS -->
                 <section class="card widget-tasks" aria-labelledby="heading-tareas">
@@ -184,34 +200,27 @@
                     <div class="budget-big-display" style="display: flex; align-items: baseline; justify-content: center; gap: 4px;">
                         <span class="currency">$</span>
                         <span id="budget-total">0</span>
-                        <!-- Límite configurado por la novia en su perfil -->
-                        <span id="budget-limit-display" class="text-muted" style="font-size: 1.1rem; font-weight: 600;">/ $0</span>
+                        <span id="budget-limit-display" class="text-muted" style="font-size: 1.1rem; font-weight: 600; margin-left: 4px;">/ $0</span>
                     </div>
 
                     <div class="barra-background" role="progressbar" aria-label="Progreso de presupuesto gastado">
                         <div id="budget-bar-fill" class="barra-relleno budget-bar-fill" style="width: 0%;"></div>
                     </div>
                 </section>
-            
-            <!-- SECCIÓN PROVEEDORES -->
-            <div class="vendors-split-container dashboard-grid grid-full-width">
-                <section class="card section-blue" aria-labelledby="heading-prov-rec">
-                    <div class="card-header-clean">
-                        <h2 id="heading-prov-rec"><i class="fas fa-magic" aria-hidden="true"></i> Proveedores recomendados</h2>
-                    </div>
-                    <div class="vendors-list-vertical" id="recommended-vendors-list">
-                        <p class="text-muted text-center p-20">Cargando recomendaciones...</p>
-                    </div>
-                </section>
 
+                <!-- MIS PROVEEDORES (DEBAJO DE PRESUPUESTO) -->
                 <section class="card section-green" aria-labelledby="heading-mis-prov">
-                    <div class="card-header-clean">
+                    <div class="card-header-clean flex-between-center">
                         <h2 id="heading-mis-prov"><i class="fas fa-briefcase" aria-hidden="true"></i> Mis Proveedores</h2>
+                        <button type="button" class="btn btn-ghost text-small" onclick="openAddVendorModal()">
+                            <i class="fas fa-plus" aria-hidden="true"></i> Agregar
+                        </button>
                     </div>
                     <div class="vendors-list-vertical" id="selected-vendors-list">
                         <p class="text-muted text-center p-20">Aún no has contratado proveedores.</p>
                     </div>
                 </section>
+
             </div>
 
         </main>
@@ -256,12 +265,10 @@
         </div>
     </div>
 
-
     <!-- ==========================================================================
         MODALES DE INTERACCIÓN Y DIÁLOGOS (SISTEMA UNIFICADO)
         ========================================================================== -->
     
-    <!-- OVERLAY OSCURO ÚNICO PARA MODALES -->
     <div id="modal-overlay" class="modal-overlay hidden" onclick="closeAllModals()"></div>
 
     <!-- Modal Planificación Completa -->
@@ -276,6 +283,54 @@
                 <div id="lista-completa-container" class="scroll-list">
                     <p class="text-muted">Cargando tareas...</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Agregar Proveedor -->
+    <div id="modal-add-vendor" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-add-vendor">
+        <div class="modal-content-modern" style="max-width: 480px;">
+            <div class="modal-header-modern">
+                <h3 id="title-add-vendor" class="text-green"><i class="fas fa-handshake"></i> Contratar / Agregar Proveedor</h3>
+                <button type="button" class="close-modal-modern" onclick="closeAllModals()" aria-label="Cerrar modal">&times;</button>
+            </div>
+            <div class="modal-body-scrollable">
+                <div class="form-group">
+                    <label for="new-vendor-name" class="modern-label">Nombre del Proveedor / Empresa</label>
+                    <input type="text" id="new-vendor-name" class="modern-input" placeholder="Ej: Catering Gourmet Guayaquil">
+                </div>
+                <div class="form-group">
+                    <label for="new-vendor-category" class="modern-label">Categoría / Servicio</label>
+                    <select id="new-vendor-category" class="modern-select">
+                        <option value="Catering & Banquete">Catering & Banquete</option>
+                        <option value="Fotografía & Video">Fotografía & Video</option>
+                        <option value="Decoración & Flores">Decoración & Flores</option>
+                        <option value="Música & DJ">Música & DJ</option>
+                        <option value="Salón de Eventos">Salón de Eventos</option>
+                        <option value="Maquillaje & Peinado">Maquillaje & Peinado</option>
+                        <option value="Vestido & Traje">Vestido & Traje</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="new-vendor-status" class="modern-label">Estado del Trámite</label>
+                    <select id="new-vendor-status" class="modern-select">
+                        <option value="Pendiente">Pendiente (Por cotizar)</option>
+                        <option value="En Revisión">En Revisión por Andrea</option>
+                        <option value="Contratado">Contratado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="new-vendor-phone" class="modern-label">Teléfono de Contacto (Opcional)</label>
+                    <input type="tel" id="new-vendor-phone" class="modern-input" placeholder="+593991234567">
+                </div>
+                <div class="form-group">
+                    <label for="new-vendor-contract" class="modern-label">Adjuntar Contrato (PDF Opcional)</label>
+                    <input type="file" id="new-vendor-contract" accept=".pdf" class="modern-input">
+                </div>
+                <button type="button" class="btn btn-primary w-full mt-10" onclick="addNewVendorBD()">
+                    Guardar Proveedor
+                </button>
             </div>
         </div>
     </div>
@@ -339,7 +394,7 @@
         </div>
     </div>
 
-    <!-- Modal Presupuesto (Con Gráfico Chart.js) -->
+    <!-- Modal Presupuesto -->
     <div id="modal-budget" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-modal-budget">
         <div class="modal-content-modern" style="max-width: 750px;">
             <div class="modal-header-modern">
@@ -370,7 +425,7 @@
             </div>
             
             <div class="modal-footer-summary flex-between-center p-20 bg-gray font-bold">
-                <span>Total Asignado:</span>
+                <span>Total Gastado:</span>
                 <span class="total-amount text-orange" id="modal-budget-total">$0</span>
             </div>
         </div>
@@ -409,7 +464,7 @@
         </div>
     </div>
 
-    <!-- Modal Agregar Invitado (Con Teléfono WhatsApp) -->
+    <!-- Modal Agregar Invitado -->
     <div id="modal-add-guest-form" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-add-guest">
         <div class="modal-content-modern" style="max-width: 450px;">
             <div class="modal-header-modern">
@@ -469,7 +524,7 @@
 
                 <div class="grid-2-col">
                     <div class="form-group">
-                        <label for="profile-name" class="modern-label">Tu Nombre </label>
+                        <label for="profile-name" class="modern-label">Tu Nombre</label>
                         <input type="text" id="profile-name" class="modern-input input-readonly" readonly placeholder="Ej: Erika">
                     </div>
 
@@ -508,7 +563,7 @@
                     </div>
                 </div>
 
-                <button type="button" id="btn-save-profile" class="btn btn-primary w-full mt-20">
+                <button type="button" id="btn-save-profile" class="btn btn-primary w-full mt-20" onclick="saveProfileToDB()">
                     Guardar Cambios
                 </button>
 
@@ -577,7 +632,7 @@
         </div>
     </div>
 
-    <!-- Modal Detalles de Proveedor -->
+    <!-- Modal Detalles / Estadísticas de Proveedor (Marketplace) -->
     <div id="modal-vendor-details" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-vendor-details">
         <div class="modal-content-modern" style="max-width: 500px;">
             <div class="modal-header-modern">
