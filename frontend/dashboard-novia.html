@@ -4,45 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Dashboard de planificación de bodas para novias. Gestiona tareas, presupuesto, invitados y proveedores.">
-    <meta name="theme-color" content="#e91e63"> <title>Mi Boda | Dashboard</title>
+    <meta name="theme-color" content="#d81b60">
+    <title>Mi Boda | Dashboard</title>
     <link rel="icon" href="assets/icon.png">
 
+    <!-- Fuentes y Tipografía -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- Íconos y Librerías CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     
+    <!-- Hoja de Estilos Principal -->
     <link rel="stylesheet" href="dashboard-novia.css">
 
+    <!-- Scripts de Librerías (Cargados antes de dashboard-novia.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js" defer></script>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js' defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 </head>
 
 <body>
 
-    <nav class="navbar">
+    <nav class="navbar" role="navigation" aria-label="Navegación principal">
         <div class="logo">AF Wedding</div>
         <div class="user-controls flex-center-gap">
-            <div id="navbar-avatar-btn" role="button" aria-label="Perfil de usuario" tabindex="0">N</div>
-            <button id="logout-btn" class="btn btn-danger btn-logout" title="Cerrar Sesión" aria-label="Cerrar sesión">
-                <i class="fas fa-sign-out-alt"></i>
+            <div id="navbar-avatar-btn" role="button" aria-label="Perfil de usuario" tabindex="0" onclick="openModal('modal-profile')">N</div>
+            <button type="button" id="logout-btn" class="btn btn-danger btn-logout" onclick="logout()" title="Cerrar Sesión" aria-label="Cerrar sesión">
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
             </button>
         </div> 
     </nav>
 
     <div class="dashboard-container">
 
+        <!-- HEADER DE BIENVENIDA & PROGRESO -->
         <header class="welcome-header text-center mb-40">
             <h1>Bienvenida a tu planificación,
-                <span id="user-name-display" class="text" style="text-transform: capitalize;"></span>
-                <span class="text-pink">♥</span></h1>
+                <span id="user-name-display" class="user-name-display" style="text-transform: capitalize;">Novia</span>
+                <span class="text-pink" aria-hidden="true">♥</span>
+            </h1>
             
             <div id="countdown-wrapper" class="countdown-wrapper hidden">
                 <p class="countdown-title">Faltan para el Gran Día:</p>
-                <div class="countdown-timer" role="timer">
+                <div class="countdown-timer" role="timer" aria-label="Cuenta regresiva para la boda">
                     <div class="time-box"><span id="c-days" class="number">00</span><span class="label">Días</span></div>
                     <div class="time-box"><span id="c-hours" class="number">00</span><span class="label">Hs</span></div>
                     <div class="time-box"><span id="c-minutes" class="number">00</span><span class="label">Min</span></div>
@@ -57,94 +65,91 @@
                     <span>Progreso General</span>
                     <span class="texto-porcentaje" id="progress-text">0%</span>
                 </div>
-                <div class="barra-background" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <div class="barra-background" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Progreso general de tareas">
                     <div class="barra-relleno" id="progress-bar" style="width: 0%;">
                         <div class="icono-flor">
-                            <span class="emoji-progreso">💐</span>
+                            <span class="emoji-progreso" role="img" aria-label="Ramo de flores">💐</span>
                         </div>
                     </div> 
                 </div>
             </div>
 
+            <!-- TARJETA DE CELEBRACIÓN -->
             <div id="container-botones-calificacion" class="celebration-card hidden">
                 <div class="celebration-content">
                     <h3>✨ ¡Felicidades, todo está listo! ✨</h3>
                     <p>Has completado la organización de tu boda. Es momento de compartir tu experiencia.</p>
                     
-                    <div class="header-buttons-container flex-center-gap">
-                        <button id="btn-rate-vendors" class="btn-glow" onclick="openMultiVendorRatingModal()">
-                            <i class="fas fa-star"></i> Calificar Proveedores
+                    <div class="header-buttons-container flex-center-gap" style="justify-content: center; margin-top: 15px;">
+                        <button type="button" id="btn-rate-vendors" class="btn btn-glow" onclick="openMultiVendorRatingModal()">
+                            <i class="fas fa-star" aria-hidden="true"></i> Calificar Proveedores
                         </button>
 
-                        <button id="btn-rate-andrea" class="btn-outline" onclick="openPlannerRatingModal()">
-                            <i class="fas fa-user-tie"></i> Calificar a Andrea
+                        <button type="button" id="btn-rate-andrea" class="btn btn-outline" onclick="openPlannerRatingModal()">
+                            <i class="fas fa-user-tie" aria-hidden="true"></i> Calificar a Andrea
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div id="alert-box" class="alert-container hidden" role="alert"></div>
-            <main class="dashboard-grid">
+            <div id="alert-box" class="alert-container hidden" role="alert" aria-live="polite"></div>
+        </header>
+
+        <!-- GRID PRINCIPAL -->
+        <main class="dashboard-grid">
             
-            <section class="card calendar-card">
+            <!-- SECCIÓN AGENDA & CALENDARIO -->
+            <section class="card calendar-card" aria-labelledby="heading-agenda">
                 <div class="card-header-clean flex-between-center mb-20">
-                    <h2><i class="far fa-calendar-alt"></i> Mi Agenda</h2>
-                    <button onclick="openVideoModal()" title="Ver tutorial" class="btn btn-ghost btn-tutorial" aria-label="Ver tutorial de ayuda">?</button>
+                    <h2 id="heading-agenda"><i class="far fa-calendar-alt" aria-hidden="true"></i> Mi Agenda</h2>
+                    <button type="button" onclick="openVideoModal()" title="Ver tutorial" class="btn btn-ghost btn-tutorial" aria-label="Ver tutorial de ayuda">?</button>
                 </div>
                 
-                <div class="pastel-filters-container flex-center-gap mb-15" style="flex-wrap: wrap; gap: 5px;">
-                    <button class="filter-pill active" onclick="filtrarCalendario('all', this)">Todos</button>
-                    <button class="filter-pill pill-green" onclick="filtrarCalendario('completed', this)">Completados</button>
-                    <button class="filter-pill pill-red" onclick="filtrarCalendario('urgent', this)">Urgentes</button>
-                    <button class="filter-pill pill-yellow" onclick="filtrarCalendario('medium', this)">Medio</button>
-                    <button class="filter-pill pill-blue" onclick="filtrarCalendario('low', this)">Bajo</button>
+                <div class="pastel-filters-container flex-center-gap mb-15" role="group" aria-label="Filtros del calendario">
+                    <button type="button" class="filter-pill active" onclick="filtrarCalendario('all', this)">Todos</button>
+                    <button type="button" class="filter-pill pill-green" onclick="filtrarCalendario('completed', this)">Completados</button>
+                    <button type="button" class="filter-pill pill-red" onclick="filtrarCalendario('urgent', this)">Urgentes</button>
+                    <button type="button" class="filter-pill pill-yellow" onclick="filtrarCalendario('medium', this)">Medio</button>
+                    <button type="button" class="filter-pill pill-blue" onclick="filtrarCalendario('low', this)">Bajo</button>
                 </div>
                 
                 <div id="calendar"></div>
             </section>
 
+            <!-- COLUMNA DERECHA: TAREAS, INVITADOS Y PRESUPUESTO -->
             <div class="right-column">
 
-                <div class="dashboard-card widget-tasks">
+                <!-- WIDGET TAREAS PRIORITARIAS -->
+                <section class="card widget-tasks" aria-labelledby="heading-tareas">
                     <div class="widget-header-row">
                         <div class="title-with-icon">
-                            <h3>Tareas Prioritarias</h3>
+                            <h3 id="heading-tareas">Tareas Prioritarias</h3>
                         </div>
-                        <button class="btn-add-circle" onclick="toggleInputTarea()" title="Agregar nueva tarea">
-                            <i class="fas fa-plus"></i>
+                        <button type="button" class="btn-add-circle" onclick="toggleInputTarea()" title="Agregar nueva tarea" aria-label="Agregar tarea">
+                            <i class="fas fa-plus" aria-hidden="true"></i>
                         </button>
                     </div>
 
                     <div id="nueva-tarea-row" class="add-task-drawer" style="display:none;">
-                        <input type="text" id="inputNuevaTarea" class="input-moderno" placeholder="Escribe tu tarea..." autocomplete="off">
-                        <button class="btn-confirm-add" onclick="guardarNuevaTarea()">OK</button>
+                        <input type="text" id="inputNuevaTarea" class="input-moderno" placeholder="Escribe tu tarea..." autocomplete="off" aria-label="Escribe una nueva tarea">
+                        <button type="button" class="btn-confirm-add" onclick="guardarNuevaTarea()">OK</button>
                     </div>
 
                     <div id="checklist-container" class="task-list-preview">
+                        <!-- Carga dinámica JS -->
                     </div>
+
                     <div class="widget-footer">
-                        <button id="btn-abrir-modal" class="btn-gradient-rounded">
-                            Ver planificación completa
-                            <span class="arrow-icon">→</span>
+                        <button type="button" id="btn-abrir-modal" class="btn-gradient-rounded" onclick="abrirModalPlanificacion()">
+                            Ver planificación completa <span class="arrow-icon" aria-hidden="true">→</span>
                         </button>
                     </div>
-                </div>
+                </section>
 
-                <div id="modal-full-checklist" class="modal hidden" style="display:none;">
-                    <div class="modal-content-modern">
-                        <div class="modal-header-modern">
-                            <h3>Planificación Completa</h3>
-                            <button onclick="cerrarModalPlanificacion()" class="close-modal-modern">&times;</button>
-                        </div>
-                        <div class="modal-body-scrollable">
-                            <div id="lista-completa-container"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <section class="card guests-card section-purple guests-widget-container">
+                <!-- WIDGET INVITADOS -->
+                <section class="card guests-card section-purple guests-widget-container" aria-labelledby="heading-invitados">
                     <div class="card-header-clean">
-                        <h2 class="text-purple"><i class="fas fa-users"></i> Invitados</h2>
+                        <h2 id="heading-invitados" class="text-purple"><i class="fas fa-users" aria-hidden="true"></i> Invitados</h2>
                     </div>
                     
                     <div class="guest-circle-wrap">
@@ -154,142 +159,205 @@
                         </div>
                     </div>
                     
-                    <div class="guest-stats-text">
-                        Total esperado: <span id="total-guests" class="font-bold">0</span>
+                    <div class="guest-stats-text text-muted mb-10">
+                        Total esperado: <span id="total-guests" class="font-bold text-purple">0</span>
                     </div>
 
-                    <button class="btn-guests-action" onclick="openGuestsModal()">
+                    <button type="button" class="btn-guests-action" onclick="openGuestsModal()">
                         Ver Invitados
                     </button>
                         
                     <div class="mt-20 text-center">
                         <input type="file" id="excel-upload-input" hidden accept=".xlsx, .xls">
-                        <button class="btn btn-ghost text-sm" onclick="document.getElementById('excel-upload-input').click()">
-                            <i class="fab fa-google-drive"></i> Cargar Excel
+                        <button type="button" class="btn btn-ghost text-small btn-excel-dashed" onclick="document.getElementById('excel-upload-input').click()">
+                            <i class="fas fa-file-excel" aria-hidden="true"></i> Cargar Excel
                         </button>
                     </div>
                 </section>
 
-                <section class="card budget-card section-orange">
+                <!-- WIDGET PRESUPUESTO -->
+                <section class="card budget-card section-orange" aria-labelledby="heading-presupuesto">
                     <div class="card-header-clean flex-between-center">
-                        <h2 class="text-orange"><i class="fas fa-piggy-bank"></i> Presupuesto</h2>
-                        <a href="#" onclick="openBudgetModal()" class="btn btn-ghost text-sm">Ver</a>
+                        <h2 id="heading-presupuesto" class="text-orange"><i class="fas fa-piggy-bank" aria-hidden="true"></i> Presupuesto</h2>
+                        <button type="button" onclick="openBudgetModal()" class="btn btn-ghost text-small">Ver</button>
                     </div>
-                    <div class="budget-big-display">
+                    <div class="budget-big-display" style="display: flex; align-items: baseline; justify-content: center; gap: 4px;">
                         <span class="currency">$</span>
-                        <span id="budget-total">15,000</span>
+                        <span id="budget-total">0</span>
+                        <!-- Límite configurado por la novia en su perfil -->
+                        <span id="budget-limit-display" class="text-muted" style="font-size: 1.1rem; font-weight: 600;">/ $0</span>
                     </div>
-                    <div class="barra-background">
-                        <div class="barra-relleno budget-bar-fill"></div>
+
+                    <div class="barra-background" role="progressbar" aria-label="Progreso de presupuesto gastado">
+                        <div id="budget-bar-fill" class="barra-relleno budget-bar-fill" style="width: 0%;"></div>
                     </div>
                 </section>
-            </div>
             
+            <!-- SECCIÓN PROVEEDORES -->
             <div class="vendors-split-container dashboard-grid grid-full-width">
-                
-                <section class="card section-blue">
+                <section class="card section-blue" aria-labelledby="heading-prov-rec">
                     <div class="card-header-clean">
-                        <h2><i class="fas fa-magic"></i> Proveedores recomendados</h2>
+                        <h2 id="heading-prov-rec"><i class="fas fa-magic" aria-hidden="true"></i> Proveedores recomendados</h2>
                     </div>
                     <div class="vendors-list-vertical" id="recommended-vendors-list">
-                        </div>
+                        <p class="text-muted text-center p-20">Cargando recomendaciones...</p>
+                    </div>
                 </section>
 
-                <section class="card section-green">
+                <section class="card section-green" aria-labelledby="heading-mis-prov">
                     <div class="card-header-clean">
-                        <h2><i class="fas fa-briefcase"></i> Mis Proveedores</h2>
+                        <h2 id="heading-mis-prov"><i class="fas fa-briefcase" aria-hidden="true"></i> Mis Proveedores</h2>
                     </div>
                     <div class="vendors-list-vertical" id="selected-vendors-list">
-                         </div>
+                        <p class="text-muted text-center p-20">Aún no has contratado proveedores.</p>
+                    </div>
                 </section>
             </div>
 
         </main>
     </div>
 
-    <div id="modal-overlay" class="custom-modal hidden" aria-hidden="true"></div>
+    <!-- ASISTENTE VIRTUAL / CHATBOT -->
+    <button type="button" class="chatbot-toggler" id="chatbot-toggler-btn" aria-label="Abrir asistente virtual">
+        <span class="material-symbols-outlined" aria-hidden="true">mode_comment</span>
+    </button>
+    
+    <div class="chatbot" role="region" aria-label="Asistente virtual de bodas">
+        <div class="chatbot-header">
+            <div class="chat-brand">
+                <span class="material-symbols-outlined header-icon" aria-hidden="true">smart_toy</span>
+                <div class="chat-title">
+                    <h3>AF Wedding Virtual</h3>
+                </div>
+            </div>
+            <button type="button" id="close-chat-btn" aria-label="Cerrar chat">
+                <span class="material-symbols-outlined" aria-hidden="true">close</span>
+            </button>
+        </div>
+        
+        <ul id="chatbot-messages" class="chatbox" aria-live="polite">
+            <li class="chat incoming">
+                <span class="material-symbols-outlined" aria-hidden="true">smart_toy</span>
+                <p>¡Hola! ✨<br>¿En qué puedo ayudarte hoy con la organización de tu boda?</p>
+            </li>
+        </ul>
+        
+        <div class="chat-input">
+            <input type="file" id="chat-file-hidden" hidden accept="image/*, .pdf, .txt">
+            <label for="chat-file-hidden" class="file-label" aria-label="Adjuntar documento">
+                <span class="material-symbols-outlined" aria-hidden="true">attach_file</span>
+            </label>
+            
+            <textarea id="chatbot-input" placeholder="Escribe aquí..." required aria-label="Escribe tu mensaje"></textarea>
+            
+            <button type="button" id="send-btn" aria-label="Enviar mensaje">
+                <span class="material-symbols-outlined" aria-hidden="true">send</span>
+            </button>
+        </div>
+    </div>
 
-    <dialog id="modal-event-details" class="custom-modal hidden" aria-modal="true">
+
+    <!-- ==========================================================================
+        MODALES DE INTERACCIÓN Y DIÁLOGOS (SISTEMA UNIFICADO)
+        ========================================================================== -->
+    
+    <!-- OVERLAY OSCURO ÚNICO PARA MODALES -->
+    <div id="modal-overlay" class="modal-overlay hidden" onclick="closeAllModals()"></div>
+
+    <!-- Modal Planificación Completa -->
+    <div id="modal-full-checklist" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-full-checklist">
+        <div class="modal-content-modern" style="max-width: 650px;">
+            <div class="modal-header-modern">
+                <h3 id="title-full-checklist">Planificación Completa</h3>
+                <button type="button" onclick="cerrarModalPlanificacion()" class="close-modal-modern" aria-label="Cerrar modal">&times;</button>
+            </div>
+            <div class="modal-body-scrollable">
+                <p class="text-muted mb-20">Marca las tareas para actualizar tu progreso global.</p>
+                <div id="lista-completa-container" class="scroll-list">
+                    <p class="text-muted">Cargando tareas...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detalles de Evento -->
+    <div id="modal-event-details" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-event-details">
         <div class="modal-content-modern">
             <div class="modal-header-modern">
-                <h3>Detalles de Asignación</h3>
-                <button class="close-modal-modern" onclick="closeAllModals()" aria-label="Cerrar modal">&times;</button>
+                <h3 id="title-event-details">Detalles de Asignación</h3>
+                <button type="button" class="close-modal-modern" onclick="closeAllModals()" aria-label="Cerrar modal">&times;</button>
             </div>
             
             <div class="modal-body-scrollable">
-                <div class="assignment-grid grid-2-col">
+                <div class="grid-2-col">
                     <div>
-                        <div class="modern-label">Fecha Límite</div>
-                        <div class="assignment-value" id="evt-date"><i class="far fa-clock"></i> --/--/----</div>
+                        <span class="modern-label">Fecha Límite</span>
+                        <div class="assignment-value" id="evt-date"><i class="far fa-clock" aria-hidden="true"></i> --/--/----</div>
                     </div>
                     <div>
-                        <div class="modern-label">Responsable</div>
-                        <div class="assignment-value" id="evt-audience"><i class="far fa-user"></i> ---</div>
+                        <span class="modern-label">Responsable</span>
+                        <div class="assignment-value" id="evt-audience"><i class="far fa-user" aria-hidden="true"></i> ---</div>
                     </div>
                 </div>
+
                 <div class="mt-20">
-                    <div class="modern-label">Prioridad</div>
+                    <span class="modern-label">Prioridad</span>
                     <span id="evt-priority" class="status-badge">Normal</span>
                 </div>
 
                 <div class="form-group mt-20">
-                    <label class="modern-label">Descripción:</label>
+                    <span class="modern-label">Descripción:</span>
                     <div id="evt-desc" class="desc-box-read">Cargando...</div>
                 </div>
 
                 <div class="assignment-docs-section mt-20">
                     <h4 class="modern-label">Enlaces / Documentos</h4>
-                    <div class="doc-link-container flex-between-center border-dashed p-10 rounded">
-                        <span class="text-pink"><i class="fas fa-file-alt"></i> Doc. Wedding Planner</span>
-                        <a href="#" id="evt-link" target="_blank" class="btn btn-sm btn-primary">Abrir</a>
+                    <div class="doc-link-container flex-between-center border-dashed p-10">
+                        <span class="text-pink"><i class="fas fa-file-alt" aria-hidden="true"></i> Doc. Wedding Planner</span>
+                        <a href="#" id="evt-link" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">Abrir</a>
                     </div>
                 </div>
 
                 <div class="mt-20">
-                    <label class="modern-label">Tus Comprobantes:</label>
-                    <div class="upload-zone-container" onclick="document.getElementById('event-bride-upload').click()">
-                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <span class="modern-label">Tus Comprobantes:</span>
+                    <div class="upload-zone-container" onclick="document.getElementById('event-bride-upload').click()" role="button" tabindex="0" aria-label="Adjuntar comprobante">
+                        <i class="fas fa-cloud-upload-alt upload-icon" aria-hidden="true"></i>
                         <p class="text-muted">Clic para adjuntar</p>
                         <input type="file" id="event-bride-upload" hidden accept="image/*, .pdf">
                     </div>
 
                     <div id="event-file-status" class="file-card hidden flex-between-center">
-                        <span><i class="fas fa-file-pdf"></i> <span id="uploaded-filename">archivo.pdf</span></span>
-                        <button class="btn-danger" onclick="deleteEventFile()"><i class="fas fa-trash"></i></button>
+                        <span><i class="fas fa-file-pdf" aria-hidden="true"></i> <span id="uploaded-filename">archivo.pdf</span></span>
+                        <button type="button" class="btn-icon-danger" onclick="this.parentElement.classList.add('hidden')" aria-label="Eliminar archivo"><i class="fas fa-trash" aria-hidden="true"></i></button>
                     </div>
                 </div>
                 
                 <div class="text-right mt-20">
-                     <button class="btn btn-primary" onclick="closeAllModals()">Guardar Cambios</button>
+                     <button type="button" class="btn btn-primary" onclick="closeAllModals()">Guardar Cambios</button>
                 </div>
             </div>
         </div>
-    </dialog>
+    </div>
 
-    <dialog id="modal-rate" class="custom-modal hidden" aria-modal="true">
-        <div class="modal-content-modern">
+    <!-- Modal Presupuesto (Con Gráfico Chart.js) -->
+    <div id="modal-budget" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-modal-budget">
+        <div class="modal-content-modern" style="max-width: 750px;">
             <div class="modal-header-modern">
-                <h3 id="rating-title">Calificar</h3>
-                <button class="close-modal-modern" onclick="closeAllModals()">&times;</button>
-            </div>
-            <div id="rating-form-container" class="modal-body-scrollable"></div>
-            <div class="modal-footer p-20 border-top">
-                <button class="btn btn-primary w-full" onclick="submitRating()">Enviar Calificación</button>
-            </div>
-        </div>
-    </dialog>
-
-    <dialog id="modal-budget" class="custom-modal hidden" aria-modal="true">
-        <div class="modal-content-modern" style="min-width: 600px;">
-            <div class="modal-header-modern">
-                <h3>Desglose de Presupuesto</h3>
-                <button class="close-modal-modern" onclick="closeAllModals()">&times;</button>
+                <h3 id="title-modal-budget">Desglose de Presupuesto</h3>
+                <button type="button" class="close-modal-modern" onclick="closeAllModals()" aria-label="Cerrar modal">&times;</button>
             </div>
 
-            <div class="pastel-filters-container modal-body-padded">
-                <button class="filter-pill active" onclick="filterBudgetTable('all', this)">Todo</button>
-                <button class="filter-pill pill-green" onclick="filterBudgetTable('paid', this)">Pagado</button>
-                <button class="filter-pill pill-yellow" onclick="filterBudgetTable('pending', this)">Pendiente</button>
+            <div class="p-15 bg-light" style="border-bottom: 1px solid #eee;">
+                <h4 class="modern-label text-center mb-10">Distribución de Gastos</h4>
+                <div style="position: relative; height: 200px; width: 100%;">
+                    <canvas id="budget-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="pastel-filters-container modal-body-padded" role="group" aria-label="Filtros de presupuesto">
+                <button type="button" class="filter-pill active" onclick="filterBudgetTable('all', this)">Todo</button>
+                <button type="button" class="filter-pill pill-green" onclick="filterBudgetTable('paid', this)">Pagado</button>
+                <button type="button" class="filter-pill pill-yellow" onclick="filterBudgetTable('pending', this)">Pendiente</button>
             </div>
 
             <div class="modal-body-scrollable">
@@ -303,126 +371,111 @@
             
             <div class="modal-footer-summary flex-between-center p-20 bg-gray font-bold">
                 <span>Total Asignado:</span>
-                <span class="total-amount">$15,000</span>
+                <span class="total-amount text-orange" id="modal-budget-total">$0</span>
             </div>
         </div>
-    </dialog>
+    </div>
 
-    <dialog id="modal-vendor-details" class="custom-modal hidden" aria-modal="true">
-        <div class="modal-content-modern">
-            <button class="close-modal-modern" onclick="closeAllModals()">&times;</button>
-        <div id="vendor-detail-content" class="modal-body-scrollable"></div>
-    </dialog>
-
-    <dialog id="modal-pdf" class="custom-modal hidden" aria-modal="true">
-        <div class="modal-content-modern">
+    <!-- Modal Invitados -->
+    <div id="modal-guests" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-modal-guests">
+        <div class="modal-content-modern" style="max-width: 800px;">
             <div class="modal-header-modern">
-                <h3 class="text-green"><i class="fas fa-file-contract"></i> Contrato Firmado</h3>
-                <button class="close-modal-modern" onclick="closeAllModals()">&times;</button>
+                <h3 id="title-modal-guests" class="text-purple">Lista de Invitados</h3>
+                <button type="button" class="close-modal-modern" onclick="closeAllModals()" aria-label="Cerrar modal">&times;</button>
             </div>
-            <div class="modal-body-scrollable text-center">
-                <div class="pdf-viewer-placeholder p-50 bg-light rounded mb-20">
-                    <i class="far fa-file-pdf fa-3x text-gray"></i>
-                    <p>Visualizador de PDF</p>
-                </div>
-                <a href="#" class="btn btn-primary w-full">Descargar Documento</a>
-            </div>
-        </div>
-    </dialog>
 
-    <dialog id="modal-guests" class="custom-modal hidden" aria-modal="true">
-        <div class="modal-content-modern" style="min-width: 700px;">
-            <div class="modal-header-modern">
-                <h3 class="text-purple">Lista de Invitados</h3>
-                <button class="close-modal-modern" onclick="closeAllModals()">&times;</button>
-            </div>
-            <div class="d-flex modal-body-padded flex-between-center">
-                <div class="modal-search-bar">
-                    <input type="text" id="guest-search" placeholder="Buscar..." class="modern-input" onkeyup="filterGuests()">
-                    <select id="guest-filter" class="modern-select" style="width: auto;" onchange="filterGuests()">
+            <div class="d-flex modal-body-padded flex-between-center gap-15 mb-10" style="flex-wrap: wrap;">
+                <div class="modal-search-bar flex-center-gap" style="flex: 1;">
+                    <input type="text" id="guest-search" placeholder="Buscar invitado..." class="modern-input" onkeyup="filterGuests()" aria-label="Buscar invitado">
+                    <select id="guest-filter" class="modern-select" style="width: auto;" onchange="filterGuests()" aria-label="Filtrar por estado">
                         <option value="all">Todos</option>
                         <option value="Confirmado">Confirmados</option>
                         <option value="Pendiente">Pendientes</option>
                     </select>
                 </div>
-                <button class="btn btn-primary" onclick="openAddGuestModal()">
-                    <i class="fas fa-plus"></i> Nuevo
+                <button type="button" class="btn btn-primary" onclick="openAddGuestModal()">
+                    <i class="fas fa-plus" aria-hidden="true"></i> Nuevo
                 </button>
             </div>
+
             <div class="modal-body-scrollable">
                 <table class="modern-table">
-                    <thead><tr><th>Nombre</th><th>Grupo</th><th>Mesa</th><th>Acciones</th></tr></thead>
+                    <thead>
+                        <tr><th>Nombre</th><th>Grupo</th><th>Mesa</th><th>Estado</th><th>Acciones</th></tr>
+                    </thead>
                     <tbody id="guests-table-body"></tbody>
                 </table>
             </div>
         </div>
-    </dialog>
+    </div>
 
-    <dialog id="modal-add-guest-form" class="custom-modal hidden" aria-modal="true">
-        <div class="modal-content-modern">
+    <!-- Modal Agregar Invitado (Con Teléfono WhatsApp) -->
+    <div id="modal-add-guest-form" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-add-guest">
+        <div class="modal-content-modern" style="max-width: 450px;">
             <div class="modal-header-modern">
-                <h3>Agregar Invitado</h3>
-                <button class="close-modal-modern" onclick="closeAddGuestModal()">&times;</button>
+                <h3 id="title-add-guest">Agregar Invitado</h3>
+                <button type="button" class="close-modal-modern" onclick="closeAddGuestModal()" aria-label="Cerrar modal">&times;</button>
             </div>
             <div class="modal-body-scrollable">
-                <div class="form-group"><input type="text" id="new-guest-name" placeholder="Nombre Completo" class="modern-input"></div>
-                <div class="form-group"><input type="text" id="new-guest-group" placeholder="Grupo / Familia" class="modern-input"></div>
-                <div class="form-group"><input type="number" id="new-guest-table" placeholder="Mesa" class="modern-input"></div>
                 <div class="form-group">
+                    <label for="new-guest-name" class="modern-label">Nombre Completo</label>
+                    <input type="text" id="new-guest-name" placeholder="Ej: María López" class="modern-input">
+                </div>
+                <div class="form-group">
+                    <label for="new-guest-phone" class="modern-label">Teléfono / WhatsApp</label>
+                    <input type="tel" id="new-guest-phone" placeholder="Ej: +593991234567" class="modern-input">
+                </div>
+                <div class="form-group">
+                    <label for="new-guest-group" class="modern-label">Grupo / Familia</label>
+                    <input type="text" id="new-guest-group" placeholder="Ej: Familia Novia" class="modern-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="new-guest-table" class="modern-label">Mesa Asignada</label>
+                    <input type="number" id="new-guest-table" placeholder="1" min="1" value="1" class="modern-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="new-guest-status" class="modern-label">Estado de Confirmación</label>
                     <select id="new-guest-status" class="modern-select">
                         <option value="Pendiente">Pendiente</option>
                         <option value="Confirmado">Confirmado</option>
                     </select>
                 </div>
-                <button class="btn btn-primary w-full" onclick="addNewGuest()">Guardar</button>
+                <button type="button" class="btn btn-primary w-full" onclick="addNewGuest()">Guardar Invitado</button>
             </div>
         </div>
-    </dialog>
+    </div>
 
-    <dialog id="modal-video" class="custom-modal hidden">
-        <div class="modal-content-modern video-style">
-            <div class="header-black">
-                <button class="close-white-spin" onclick="closeVideoModal()">
-                    &times;
-                </button>
-                <h3>Vídeo guía</h3>
-            </div>
-            <div class="modal-body-scrollable">
-                <div class="video-responsive-wrapper">
-                    <iframe src="https://www.youtube.com/embed/WWEs82u37Mw?si=8lAgxMF87dNvdTqR" 
-                    title="Video Guía" frameborder="0" allowfullscreen></iframe>
-                </div>
-            </div>
-        </div>
-    </dialog>
-
-    <dialog id="modal-profile" class="custom-modal hidden" aria-modal="true">
-        <div class="modal-content-modern">
+    <!-- Modal Perfil de Usuario con LOPDP -->
+    <div id="modal-profile" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-modal-profile">
+        <div class="modal-content-modern" style="max-width: 550px;">
             <div class="modal-header-modern">
-                <h3><i class="fas fa-heart text-pink"></i> Mi Perfil</h3>
-                <button class="close-modal-modern" onclick="closeAllModals()">&times;</button>
+                <h3 id="title-modal-profile"><i class="fas fa-heart text-pink" aria-hidden="true"></i> Mi Perfil de Boda</h3>
+                <button type="button" class="close-modal-modern" onclick="closeAllModals()" aria-label="Cerrar modal">&times;</button>
             </div>
         
             <div class="modal-body-scrollable">
                 <div class="profile-avatar-upload">
                     <div class="avatar-preview-container">
                         <img id="preview-avatar" src="" class="hidden h-full-cover" alt="Vista previa avatar">
-                        <span id="preview-initial" style="font-size: 3rem; color: #ccc;">📷</span>
+                        <span id="preview-initial" aria-hidden="true">📷</span>
                     </div>
-                    <label for="upload-avatar" class="btn btn-ghost mt-20 text-sm">
-                        <i class="fas fa-camera"></i> Cambiar Foto
+                    <label for="upload-avatar" class="btn btn-ghost mt-10 text-small">
+                        <i class="fas fa-camera" aria-hidden="true"></i> Cambiar Foto
                     </label>
                     <input type="file" id="upload-avatar" accept="image/*" hidden>
                 </div>
 
                 <div class="grid-2-col">
                     <div class="form-group">
-                        <label for="profile-name" class="modern-label">Tu Nombre</label>
-                        <input type="text" id="profile-name" class="modern-input" placeholder="Ej: Andrea">
+                        <label for="profile-name" class="modern-label">Tu Nombre </label>
+                        <input type="text" id="profile-name" class="modern-input input-readonly" readonly placeholder="Ej: Erika">
                     </div>
+
                     <div class="form-group">
                         <label for="profile-partner" class="modern-label">Tu Pareja</label>
-                        <input type="text" id="profile-partner" class="modern-input" placeholder="Ej: Juan">
+                        <input type="text" id="profile-partner" class="modern-input" placeholder="Ej: Carlos">
                     </div>
                 </div>
 
@@ -434,8 +487,16 @@
                 <div class="grid-2-col">
                     <div class="form-group">
                         <label for="profile-budget" class="modern-label">Presupuesto ($)</label>
-                        <input type="number" id="profile-budget" class="modern-input" placeholder="20000">
+                        <input 
+                            type="text" 
+                            inputmode="numeric" 
+                            id="profile-budget" 
+                            class="modern-input" 
+                            placeholder="20000"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                        >
                     </div>
+
                     <div class="form-group">
                         <label for="profile-style" class="modern-label">Estilo</label>
                         <select id="profile-style" class="modern-select">
@@ -447,123 +508,145 @@
                     </div>
                 </div>
 
-                <button id="btn-save-profile" class="btn btn-primary w-full mt-20">
+                <button type="button" id="btn-save-profile" class="btn btn-primary w-full mt-20">
                     Guardar Cambios
                 </button>
+
+                <!-- LOPDP -->
+                <div class="lopdp-section mt-30 pt-20 border-top text-center">
+                    <p class="text-muted text-xs mb-10">Protección de Datos (LOPDP): Puedes solicitar la anonimización y supresión de tus datos personales en cualquier momento.</p>
+                    <button type="button" class="btn btn-ghost text-danger text-xs" onclick="alert('Solicitud enviada al administrador. Se procesará en 24 horas.')">
+                        <i class="fas fa-user-slash" aria-hidden="true"></i> Solicitar eliminación de mi cuenta
+                    </button>
+                </div>
             </div>
         </div>
-    </dialog>
-    <dialog id="modal-cropper" class="custom-modal hidden" aria-modal="true">
-        <div class="modal-content-modern" style="max-width: 600px; width: 100%;">
+    </div>
+
+    <!-- Modal Recortador de Foto (Cropper.js) -->
+    <div id="modal-cropper" class="custom-modal hidden" role="dialog">
+        <div class="modal-content-modern" style="max-width: 500px;">
             <div class="modal-header-modern">
-                <h3>Ajustar Foto</h3>
-                <button class="close-modal-modern" onclick="closeAllModals()">&times;</button>
+                <h3>Recortar Foto de Perfil</h3>
+                <button type="button" class="close-modal-modern" onclick="closeAllModals()">&times;</button>
             </div>
-            <div class="modal-body-scrollable crop-body" style="padding: 0; background: #000; display: flex; justify-content: center; align-items: center; min-height: 300px;">
-                <div class="img-container" style="width: 100%; display: flex; justify-content: center;">
-                <img id="image-to-crop" src="" alt="Imagen para recortar" style="max-width: 100%; max-height: 50vh; display: block;">
+            <div class="modal-body-scrollable text-center p-20">
+                <div style="max-height: 350px; margin-bottom: 15px; overflow: hidden;">
+                    <img id="image-to-crop" src="" alt="Imagen a recortar" style="max-width: 100%;">
+                </div>
+                <button type="button" id="btn-perform-crop" class="btn btn-primary w-full">Aplicar Recorte</button>
             </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeAllModals()" style="margin-right: 10px;">Cancelar</button>
-            <button id="btn-perform-crop" class="btn btn-primary">
-                <i class="fas fa-check"></i> Recortar y Usar
-            </button>
-        </div>
-    </dialog>
-    
-    <dialog id="modal-success" class="custom-modal hidden" aria-modal="true">
-        <div class="modal-content-modern text-center p-40">
-            <div style="font-size: 4rem; color: var(--success-green); margin-bottom: 20px;">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <h3 class="text-pink">¡Perfil Actualizado!</h3>
-            <p class="text-muted mt-10">Tus datos y foto se han guardado correctamente.</p>
-            
-            <button id="btn-close-success" class="btn btn-primary mt-20" onclick="closeAllModals()">
-                Entendido
-            </button>
-        </div>
-    </dialog> 
-    <button class="chatbot-toggler" id="chatbot-toggler-btn" aria-label="Abrir asistente virtual">
-        <span class="material-symbols-outlined">mode_comment</span>
-    </button>
-    <div class="chatbot">
-        <div class="chatbot-header">
-            <div class="chat-brand">
-                <span class="material-symbols-outlined header-icon">smart_toy</span>
-            <div class="chat-title">
-                <h3>AF Wedding Virtual</h3>
-            </div>
-        </div>
-        <button id="close-chat-btn" aria-label="Cerrar chat">
-            <span class="material-symbols-outlined">close</span>
-        </button>
-    </div>
-    
-    <ul id="chatbot-messages" class="chatbox">
-        <li class="chat incoming">
-            <span class="material-symbols-outlined">smart_toy</span>
-            <p>Hola Andrea 👋<br>¿En qué puedo ayudarte hoy?</p>
-        </li>
-    </ul>
-    
-    <div class="chat-input">
-        <input type="file" id="file-upload" hidden>
-        <label for="file-upload" class="file-label" aria-label="Adjuntar documento">
-            <span class="material-symbols-outlined">attach_file</span>
-        </label>
-        
-        <textarea id="chatbot-input" placeholder="Escribe aquí..." required aria-label="Escribe tu mensaje"></textarea>
-        
-        <button id="send-btn" aria-label="Enviar mensaje">
-            <span class="material-symbols-outlined">send</span>
-        </button>
-    </div>
-
-    <div id="modal-full-checklist" class="modal-overlay hidden">
-        <div class="modal-card-large">
-            <div class="modal-header">
-                <h3>Planificación Completa</h3>
-                <span class="close-btn" onclick="cerrarModalPlanificacion()">&times;</span>
-            </div>
-        </div>
-    
-        <div class="modal-body">
-            <p class="text-muted mb-20">Marca las tareas para actualizar tu progreso global.</p>
-            
-            <div id="lista-completa-container" class="scroll-list">
-                <p>Cargando tareas...</p>
-            </div>
-        </div>
-
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="cerrarModalPlanificacion()">Cerrar</button>
         </div>
     </div>
 
-    <div id="modal-confirm-delete" class="custom-modal hidden">
+    <!-- Modal Calificación / Encuesta de Estrellas -->
+    <div id="modal-rate" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="rating-title">
+        <div class="modal-content-modern" style="max-width: 500px;">
+            <div class="modal-header-modern">
+                <h3 id="rating-title">Calificar Experiencia</h3>
+                <button type="button" class="close-modal-modern" onclick="closeAllModals()" aria-label="Cerrar modal">&times;</button>
+            </div>
+            <div class="modal-body-scrollable p-20">
+                <div id="rating-form-container"></div>
+                <button type="button" class="btn btn-primary w-full mt-20" onclick="submitRating()">Enviar Calificación</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Gracias por Calificar -->
+    <div id="modal-thank-you" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-thank-you">
+        <div class="modal-content-modern" style="max-width: 400px; text-align: center; padding: 30px;">
+            <div style="font-size: 3rem; color: #4CAF50; margin-bottom: 15px;">
+                <i class="fas fa-check-circle" aria-hidden="true"></i>
+            </div>
+            <h3 id="title-thank-you" style="margin-bottom: 10px;">¡Muchas Gracias!</h3>
+            <p class="text-muted mb-20">Tu opinión nos ayuda a mejorar y a ofrecer la mejor experiencia para futuras novias.</p>
+            <button type="button" class="btn btn-primary w-full" onclick="closeAllModals()">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- Modal Perfil Guardado Exitosamente -->
+    <div id="modal-success" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-success">
+        <div class="modal-content-modern" style="max-width: 400px; text-align: center; padding: 30px;">
+            <div style="font-size: 3rem; color: #D81B60; margin-bottom: 15px;">
+                <i class="fas fa-heart" aria-hidden="true"></i>
+            </div>
+            <h3 id="title-success" style="margin-bottom: 10px;">¡Perfil Actualizado!</h3>
+            <p class="text-muted mb-20">Los datos de tu boda se han guardado exitosamente en tu cuenta.</p>
+            <button type="button" class="btn btn-primary w-full" onclick="closeAllModals()">Continuar</button>
+        </div>
+    </div>
+
+    <!-- Modal Detalles de Proveedor -->
+    <div id="modal-vendor-details" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-vendor-details">
+        <div class="modal-content-modern" style="max-width: 500px;">
+            <div class="modal-header-modern">
+                <h3 id="title-vendor-details">Detalles del Proveedor</h3>
+                <button type="button" class="close-modal-modern" onclick="closeAllModals()" aria-label="Cerrar modal">&times;</button>
+            </div>
+            <div class="modal-body-scrollable p-20" id="vendor-detail-content">
+                <!-- Carga dinámica JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Contrato / PDF -->
+    <div id="modal-pdf" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-modal-pdf">
+        <div class="modal-content-modern" style="max-width: 600px;">
+            <div class="modal-header-modern">
+                <h3 id="title-modal-pdf">Contrato / Documento</h3>
+                <button type="button" class="close-modal-modern" onclick="closeAllModals()" aria-label="Cerrar modal">&times;</button>
+            </div>
+            <div class="modal-body-scrollable p-20 text-center">
+                <div class="p-30 border-dashed mb-20" style="border-radius: 8px; background: #fafafa;">
+                    <i class="fas fa-file-pdf" style="font-size: 3.5rem; color: #D81B60;" aria-hidden="true"></i>
+                    <p class="mt-10 font-bold">Vista previa del contrato firmado</p>
+                    <p class="text-muted text-small">El documento oficial está resguardado en tu expediente digital.</p>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="closeAllModals()">Cerrar Documento</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Video Guía -->
+    <div id="modal-video" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-modal-video">
+        <div class="modal-content-modern video-style">
+            <div class="header-black">
+                <h3 id="title-modal-video">Vídeo Guía</h3>
+                <button type="button" class="close-white-spin" onclick="closeVideoModal()" aria-label="Cerrar video">&times;</button>
+            </div>
+            <div class="modal-body-scrollable p-0">
+                <div class="video-responsive-wrapper">
+                    <iframe src="https://www.youtube.com/embed/WWEs82u37Mw?si=8lAgxMF87dNvdTqR" 
+                            title="Video Guía de Planificación" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmación Eliminar Proveedor -->
+    <div id="modal-confirm-delete" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-confirm-delete">
         <div class="modal-content-modern" style="max-width: 400px; text-align: center; padding: 30px;">
             <div style="font-size: 3.5rem; color: #ff6b6b; margin-bottom: 15px;">
-                <i class="fas fa-exclamation-circle"></i>
+                <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
             </div>
-            <h3 style="margin-bottom: 10px; color: #333;">¿Estás segura?</h3>
+            <h3 id="title-confirm-delete" style="margin-bottom: 10px; color: #333;">¿Estás segura?</h3>
             <p class="text-muted" style="margin-bottom: 25px;">
                 Vas a eliminar a este proveedor de tu lista. Volverá a aparecer en recomendaciones.
             </p>
 
             <div class="flex-center-gap" style="justify-content: center; gap: 15px;">
-                <button class="btn btn-ghost" onclick="cerrarModalEliminar()">
-                    Cancelar
-                </button>
-                <button class="btn btn-danger" onclick="ejecutarEliminacion()">
-                    Eliminar
-                </button>
+                <button type="button" class="btn btn-ghost" onclick="cerrarModalEliminar()">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="ejecutarEliminacion()">Eliminar</button>
             </div>
         </div>
     </div>
 
-    <script src="js/auth.js"></script> 
+    <!-- SCRIPTS DE APLICACIÓN -->
+    <script src="auth.js"></script> 
     <script src="dashboard-novia.js"></script>
 </body>
 </html>
