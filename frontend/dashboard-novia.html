@@ -29,10 +29,50 @@
 
 <body>
 
+    <!-- CONTENEDOR DE NOTIFICACIONES FLOTANTES (TOASTS) -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
     <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
     <nav class="navbar" role="navigation" aria-label="Navegación principal">
         <div class="logo">AF Wedding</div>
         <div class="user-controls flex-center-gap">
+            
+            <!-- BOTÓN / CENTRO DE NOTIFICACIONES -->
+            <div class="notification-bell-wrapper" style="position: relative; cursor: pointer;" onclick="toggleNotificationsMenu()" title="Notificaciones">
+                <i class="fas fa-bell" style="font-size: 1.2rem; color: #555;" aria-hidden="true"></i>
+                <span id="unread-notifications-badge" class="badge-count">2</span>
+                
+                <!-- MENÚ DESPLEGABLE DE ALERTAS -->
+                <div id="notifications-dropdown" class="notifications-dropdown hidden">
+                    <div class="dropdown-header">
+                        <strong>Notificaciones</strong>
+                        <span class="text-xs text-pink" onclick="marcarTodasLeidas(event)" style="cursor: pointer;">Marcar leídas</span>
+                    </div>
+                    <ul id="notifications-list" class="dropdown-list">
+                        <li class="notification-item unread">
+                            <i class="fas fa-check-circle text-green" aria-hidden="true"></i>
+                            <div>
+                                <p class="mb-0 text-small"><strong>Andrea</strong> aprobó el proveedor Catering Gourmet.</p>
+                                <span class="text-xs text-muted">Hace 10 min</span>
+                            </div>
+                        </li>
+                        <li class="notification-item unread">
+                            <i class="fas fa-exclamation-triangle text-orange" aria-hidden="true"></i>
+                            <div>
+                                <p class="mb-0 text-small">Recuerda revisar el contrato de Fotografía.</p>
+                                <span class="text-xs text-muted">Hace 1 hora</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- EXPORTAR / IMPRIMIR RESUMEN -->
+            <button type="button" class="btn btn-ghost text-small" onclick="exportarResumenBoda()" title="Imprimir / Guardar Resumen en PDF">
+                <i class="fas fa-print" aria-hidden="true"></i> Resumen
+            </button>
+
+            <!-- FOTO DE PERFIL Y SALIR -->
             <div id="navbar-avatar-btn" role="button" aria-label="Perfil de usuario" tabindex="0" onclick="openModal('modal-profile')">N</div>
             <button type="button" id="logout-btn" class="btn btn-danger btn-logout" onclick="logout()" title="Cerrar Sesión" aria-label="Cerrar sesión">
                 <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
@@ -120,19 +160,50 @@
                     <div id="calendar"></div>
                 </section>
 
-                <!-- PROVEEDORES RECOMENDADOS -->
+                <!-- PROVEEDORES RECOMENDADOS (CON BOTÓN 'SELECCIONAR' Y FILTROS) -->
                 <section class="card section-blue" aria-labelledby="heading-prov-rec">
-                    <div class="card-header-clean">
+                    <div class="card-header-clean flex-between-center mb-15">
                         <h2 id="heading-prov-rec"><i class="fas fa-magic" aria-hidden="true"></i> Proveedores recomendados</h2>
                     </div>
+
+                    <!-- Filtros por Categoría -->
+                    <div class="pastel-filters-container flex-center-gap mb-15" role="group" aria-label="Filtro de recomendaciones">
+                        <button type="button" class="filter-pill active" onclick="filtrarRecomendados('all', this)">Todos</button>
+                        <button type="button" class="filter-pill pill-blue" onclick="filtrarRecomendados('catering', this)">Catering</button>
+                        <button type="button" class="filter-pill pill-yellow" onclick="filtrarRecomendados('foto', this)">Foto/Video</button>
+                        <button type="button" class="filter-pill pill-green" onclick="filtrarRecomendados('musica', this)">Música</button>
+                    </div>
+
                     <div class="vendors-list-vertical" id="recommended-vendors-list">
                         <p class="text-muted text-center p-20">Cargando recomendaciones...</p>
                     </div>
                 </section>
 
+                <!-- NUEVA FUNCIÓN: MOMENTOS & CANCIONES CLAVE DE LA BODA -->
+                <section class="card section-pink" aria-labelledby="heading-musica">
+                    <div class="card-header-clean flex-between-center mb-10">
+                        <h2 id="heading-musica" class="text-pink"><i class="fas fa-music" aria-hidden="true"></i> Momentos & Canciones</h2>
+                        <button type="button" class="btn btn-ghost text-small" onclick="openModal('modal-music-schedule')">Editar</button>
+                    </div>
+                    <div class="music-moments-preview text-small">
+                        <div class="flex-between-center py-5 border-bottom">
+                            <span><i class="fas fa-heart text-pink"></i> Entrada:</span>
+                            <strong id="song-entrance-display">Por definir</strong>
+                        </div>
+                        <div class="flex-between-center py-5 border-bottom">
+                            <span><i class="fas fa-glass-cheers text-yellow"></i> Primer Baile:</span>
+                            <strong id="song-dance-display">Por definir</strong>
+                        </div>
+                        <div class="flex-between-center py-5">
+                            <span><i class="fas fa-birthday-cake text-purple"></i> Corte de Pastel:</span>
+                            <strong id="song-cake-display">Por definir</strong>
+                        </div>
+                    </div>
+                </section>
+
             </div>
 
-            <!-- COLUMNA DERECHA: TAREAS, INVITADOS, PRESUPUESTO Y MIS PROVEEDORES -->
+            <!-- COLUMNA DERECHA: TAREAS, INVITADOS, PRESUPUESTO, MIS PROVEEDORES Y NOTAS -->
             <div class="right-column flex-column gap-30">
 
                 <!-- WIDGET TAREAS PRIORITARIAS -->
@@ -208,17 +279,22 @@
                     </div>
                 </section>
 
-                <!-- MIS PROVEEDORES (DEBAJO DE PRESUPUESTO) -->
+                <!-- MIS PROVEEDORES (SIN BOTÓN AGREGAR) -->
                 <section class="card section-green" aria-labelledby="heading-mis-prov">
-                    <div class="card-header-clean flex-between-center">
+                    <div class="card-header-clean">
                         <h2 id="heading-mis-prov"><i class="fas fa-briefcase" aria-hidden="true"></i> Mis Proveedores</h2>
-                        <button type="button" class="btn btn-ghost text-small" onclick="openAddVendorModal()">
-                            <i class="fas fa-plus" aria-hidden="true"></i> Agregar
-                        </button>
                     </div>
                     <div class="vendors-list-vertical" id="selected-vendors-list">
                         <p class="text-muted text-center p-20">Aún no has contratado proveedores.</p>
                     </div>
+                </section>
+
+                <!-- NUEVA FUNCIÓN: WIDGET DE NOTAS RÁPIDAS -->
+                <section class="card widget-notes" aria-labelledby="heading-notas">
+                    <div class="card-header-clean flex-between-center mb-10">
+                        <h2 id="heading-notas"><i class="fas fa-sticky-note text-yellow" aria-hidden="true"></i> Notas Rápidas</h2>
+                    </div>
+                    <textarea id="quick-notes-input" class="modern-input" rows="3" placeholder="Escribe tus ideas de decoración, dudas para Andrea o recordatorios..." onchange="guardarNotasRapidas(this.value)" style="resize: vertical; font-size: 0.9rem;"></textarea>
                 </section>
 
             </div>
@@ -226,7 +302,7 @@
         </main>
     </div>
 
-    <!-- ASISTENTE VIRTUAL / CHATBOT -->
+    <!-- ASISTENTE VIRTUAL INTELIGENTE (SIN BOTONES RÁPIDOS) -->
     <button type="button" class="chatbot-toggler" id="chatbot-toggler-btn" aria-label="Abrir asistente virtual">
         <span class="material-symbols-outlined" aria-hidden="true">mode_comment</span>
     </button>
@@ -257,7 +333,7 @@
                 <span class="material-symbols-outlined" aria-hidden="true">attach_file</span>
             </label>
             
-            <textarea id="chatbot-input" placeholder="Escribe aquí..." required aria-label="Escribe tu mensaje"></textarea>
+            <textarea id="chatbot-input" placeholder="Escribe aquí tu consulta..." required aria-label="Escribe tu mensaje"></textarea>
             
             <button type="button" id="send-btn" aria-label="Enviar mensaje">
                 <span class="material-symbols-outlined" aria-hidden="true">send</span>
@@ -266,7 +342,7 @@
     </div>
 
     <!-- ==========================================================================
-        MODALES DE INTERACCIÓN Y DIÁLOGOS (SISTEMA UNIFICADO)
+        MODALES DE INTERACCIÓN Y DIÁLOGOS
         ========================================================================== -->
     
     <div id="modal-overlay" class="modal-overlay hidden" onclick="closeAllModals()"></div>
@@ -287,49 +363,28 @@
         </div>
     </div>
 
-    <!-- Modal Agregar Proveedor -->
-    <div id="modal-add-vendor" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-add-vendor">
+    <!-- Modal Editar Canciones / Momentos Clave -->
+    <div id="modal-music-schedule" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-music-schedule">
         <div class="modal-content-modern" style="max-width: 480px;">
             <div class="modal-header-modern">
-                <h3 id="title-add-vendor" class="text-green"><i class="fas fa-handshake"></i> Contratar / Agregar Proveedor</h3>
+                <h3 id="title-music-schedule" class="text-pink"><i class="fas fa-music"></i> Momentos & Canciones Clave</h3>
                 <button type="button" class="close-modal-modern" onclick="closeAllModals()" aria-label="Cerrar modal">&times;</button>
             </div>
             <div class="modal-body-scrollable">
                 <div class="form-group">
-                    <label for="new-vendor-name" class="modern-label">Nombre del Proveedor / Empresa</label>
-                    <input type="text" id="new-vendor-name" class="modern-input" placeholder="Ej: Catering Gourmet Guayaquil">
+                    <label for="input-song-entrance" class="modern-label">Entrada de la Novia</label>
+                    <input type="text" id="input-song-entrance" class="modern-input" placeholder="Ej: A Thousand Years - Christina Perri">
                 </div>
                 <div class="form-group">
-                    <label for="new-vendor-category" class="modern-label">Categoría / Servicio</label>
-                    <select id="new-vendor-category" class="modern-select">
-                        <option value="Catering & Banquete">Catering & Banquete</option>
-                        <option value="Fotografía & Video">Fotografía & Video</option>
-                        <option value="Decoración & Flores">Decoración & Flores</option>
-                        <option value="Música & DJ">Música & DJ</option>
-                        <option value="Salón de Eventos">Salón de Eventos</option>
-                        <option value="Maquillaje & Peinado">Maquillaje & Peinado</option>
-                        <option value="Vestido & Traje">Vestido & Traje</option>
-                        <option value="Otro">Otro</option>
-                    </select>
+                    <label for="input-song-dance" class="modern-label">Primer Baile de Esposos</label>
+                    <input type="text" id="input-song-dance" class="modern-input" placeholder="Ej: Perfect - Ed Sheeran">
                 </div>
                 <div class="form-group">
-                    <label for="new-vendor-status" class="modern-label">Estado del Trámite</label>
-                    <select id="new-vendor-status" class="modern-select">
-                        <option value="Pendiente">Pendiente (Por cotizar)</option>
-                        <option value="En Revisión">En Revisión por Andrea</option>
-                        <option value="Contratado">Contratado</option>
-                    </select>
+                    <label for="input-song-cake" class="modern-label">Corte de Pastel</label>
+                    <input type="text" id="input-song-cake" class="modern-input" placeholder="Ej: Sugar - Maroon 5">
                 </div>
-                <div class="form-group">
-                    <label for="new-vendor-phone" class="modern-label">Teléfono de Contacto (Opcional)</label>
-                    <input type="tel" id="new-vendor-phone" class="modern-input" placeholder="+593991234567">
-                </div>
-                <div class="form-group">
-                    <label for="new-vendor-contract" class="modern-label">Adjuntar Contrato (PDF Opcional)</label>
-                    <input type="file" id="new-vendor-contract" accept=".pdf" class="modern-input">
-                </div>
-                <button type="button" class="btn btn-primary w-full mt-10" onclick="addNewVendorBD()">
-                    Guardar Proveedor
+                <button type="button" class="btn btn-primary w-full mt-10" onclick="guardarCanciones()">
+                    Guardar Canciones
                 </button>
             </div>
         </div>
@@ -578,7 +633,7 @@
         </div>
     </div>
 
-    <!-- Modal Recortador de Foto (Cropper.js) -->
+    <!-- Modal Recortador de Foto -->
     <div id="modal-cropper" class="custom-modal hidden" role="dialog">
         <div class="modal-content-modern" style="max-width: 500px;">
             <div class="modal-header-modern">
@@ -594,7 +649,7 @@
         </div>
     </div>
 
-    <!-- Modal Calificación / Encuesta de Estrellas -->
+    <!-- Modal Calificación -->
     <div id="modal-rate" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="rating-title">
         <div class="modal-content-modern" style="max-width: 500px;">
             <div class="modal-header-modern">
@@ -605,30 +660,6 @@
                 <div id="rating-form-container"></div>
                 <button type="button" class="btn btn-primary w-full mt-20" onclick="submitRating()">Enviar Calificación</button>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal Gracias por Calificar -->
-    <div id="modal-thank-you" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-thank-you">
-        <div class="modal-content-modern" style="max-width: 400px; text-align: center; padding: 30px;">
-            <div style="font-size: 3rem; color: #4CAF50; margin-bottom: 15px;">
-                <i class="fas fa-check-circle" aria-hidden="true"></i>
-            </div>
-            <h3 id="title-thank-you" style="margin-bottom: 10px;">¡Muchas Gracias!</h3>
-            <p class="text-muted mb-20">Tu opinión nos ayuda a mejorar y a ofrecer la mejor experiencia para futuras novias.</p>
-            <button type="button" class="btn btn-primary w-full" onclick="closeAllModals()">Aceptar</button>
-        </div>
-    </div>
-
-    <!-- Modal Perfil Guardado Exitosamente -->
-    <div id="modal-success" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-success">
-        <div class="modal-content-modern" style="max-width: 400px; text-align: center; padding: 30px;">
-            <div style="font-size: 3rem; color: #D81B60; margin-bottom: 15px;">
-                <i class="fas fa-heart" aria-hidden="true"></i>
-            </div>
-            <h3 id="title-success" style="margin-bottom: 10px;">¡Perfil Actualizado!</h3>
-            <p class="text-muted mb-20">Los datos de tu boda se han guardado exitosamente en tu cuenta.</p>
-            <button type="button" class="btn btn-primary w-full" onclick="closeAllModals()">Continuar</button>
         </div>
     </div>
 

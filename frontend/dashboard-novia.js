@@ -1223,6 +1223,131 @@ function iniciarCuentaRegresiva() {
     }, 1000);
 }
 
+/* ==========================================================================
+   AGREGAR AL FINAL DE DASHBOARD-NOVIA.JS (SINCRONIZADO CON LA BD)
+   ========================================================================== */
+
+// 1. Notificaciones Flotantes (Toasts) y Centro de Alertas
+window.showToast = function(mensaje, tipo = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast-item toast-${tipo}`;
+    toast.innerHTML = `<i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> <span>${mensaje}</span>`;
+
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3200);
+};
+
+window.toggleNotificationsMenu = function() {
+    const dropdown = document.getElementById('notifications-dropdown');
+    if (dropdown) dropdown.classList.toggle('hidden');
+};
+
+window.marcarTodasLeidas = function(e) {
+    if (e) e.stopPropagation();
+    const badge = document.getElementById('unread-notifications-badge');
+    const items = document.querySelectorAll('.notification-item.unread');
+    
+    items.forEach(item => item.classList.remove('unread'));
+    if (badge) badge.classList.add('hidden');
+    showToast('Notificaciones marcadas como leídas');
+};
+
+// 2. Filtro de Recomendaciones por Categoría
+window.filtrarRecomendados = function(categoria, btn) {
+    document.querySelectorAll('#heading-prov-rec + .pastel-filters-container .filter-pill').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    if (typeof renderVendorLists === 'function') {
+        renderVendorLists(categoria);
+    }
+};
+
+// 3. Selección directa de Proveedor desde el Modal
+window.seleccionarProveedorDesdeModal = function(vendorId) {
+    if (typeof seleccionarRecomendado === 'function') {
+        seleccionarRecomendado(vendorId);
+    }
+    if (typeof closeAllModals === 'function') {
+        closeAllModals();
+    }
+};
+
+// 4. Momentos & Canciones Clave (Sincronizado con BD)
+function cargarCancionesGuardadas() {
+    const ent = localStorage.getItem('songEntrance') || 'Por definir';
+    const dance = localStorage.getItem('songDance') || 'Por definir';
+    const cake = localStorage.getItem('songCake') || 'Por definir';
+
+    if (document.getElementById('song-entrance-display')) document.getElementById('song-entrance-display').textContent = ent;
+    if (document.getElementById('song-dance-display')) document.getElementById('song-dance-display').textContent = dance;
+    if (document.getElementById('song-cake-display')) document.getElementById('song-cake-display').textContent = cake;
+}
+
+window.guardarCanciones = async function() {
+    const ent = document.getElementById('input-song-entrance')?.value || 'Por definir';
+    const dance = document.getElementById('input-song-dance')?.value || 'Por definir';
+    const cake = document.getElementById('input-song-cake')?.value || 'Por definir';
+    const userId = localStorage.getItem('userId');
+
+    // 1. Guardar localmente
+    localStorage.setItem('songEntrance', ent);
+    localStorage.setItem('songDance', dance);
+    localStorage.setItem('songCake', cake);
+
+    cargarCancionesGuardadas();
+    if (typeof closeAllModals === 'function') closeAllModals();
+
+    // 2. Enviar a la Base de Datos en Render para que Andrea las vea
+    try {
+        await fetch(`${API_URL}/canciones-boda`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, entrada: ent, primerBaile: dance, pastel: cake })
+        });
+        showToast('Canciones sincronizadas con tu Wedding Planner');
+    } catch (error) {
+        showToast('Guardado en el navegador (Sin conexión a BD)', 'warning');
+    }
+};
+
+// 5. Notas Rápidas (Sincronizado con BD)
+function cargarNotasRapidas() {
+    const input = document.getElementById('quick-notes-input');
+    if (input) input.value = localStorage.getItem('quickNotesBride') || '';
+}
+
+window.guardarNotasRapidas = async function(val) {
+    const userId = localStorage.getItem('userId');
+    localStorage.setItem('quickNotesBride', val);
+
+    try {
+        await fetch(`${API_URL}/notas-novia`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, nota: val })
+        });
+        showToast('Notas sincronizadas con la BD');
+    } catch (error) {
+        showToast('Nota guardada localmente');
+    }
+};
+
+// 6. Imprimir / Exportar Resumen
+window.exportarResumenBoda = function() {
+    window.print();
+};
+
+// Inicializador
+document.addEventListener('DOMContentLoaded', () => {
+    cargarCancionesGuardadas();
+    cargarNotasRapidas();
+});
+
 /* Logout */
 window.logout = function() {
     localStorage.removeItem('userId');
