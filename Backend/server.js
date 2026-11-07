@@ -14,6 +14,7 @@ import privacyRoutes from './routes/privacyRoutes.js';
 import incidentsRoutes from './routes/incidentsRoutes.js';
 import seatingRoutes from './routes/seatingRoutes.js';
 import documentRoutes from './routes/documentRoutes.js';
+import auditRoutes from './routes/auditRoutes.js';
 
 dotenv.config();
 
