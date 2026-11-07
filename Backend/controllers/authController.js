@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool, query } from '../config/db.js';
-import transporter from '../config/mailer.js';
+import { transporter } from '../config/mailer.js';
 import { getResetPasswordEmailTemplate } from '../config/emailTemplates.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secreto_super_seguro_wedding_web_2026';
