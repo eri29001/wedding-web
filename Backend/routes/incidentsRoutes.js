@@ -11,12 +11,12 @@ import { verifyToken } from '../middleware/authMiddleware.js';
 const router = Router();
 
 // Consultar incidencias y métricas
-router.get('/', verificarToken, getIncidentsByUser);
-router.get('/stats', verificarToken, getProviderIncidentStats);
+router.get('/', verifyToken, getIncidentsByUser);
+router.get('/stats', verifyToken, getProviderIncidentStats);
 
 // Registro y flujo colaborativo de solución
-router.post('/', verificarToken, createIncident);
-router.patch('/:id/respond', verificarToken, respondToIncident);
-router.patch('/:id/resolve', verificarToken, resolveIncident);
+router.post('/', verifyToken, createIncident);
+router.patch('/:id/respond', verifyToken, respondToIncident);
+router.patch('/:id/resolve', verifyToken, resolveIncident);
 
 export default router;
