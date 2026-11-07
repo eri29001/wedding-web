@@ -6,7 +6,7 @@ export async function inicializarBaseDeDatos() {
         const client = await pool.connect();
         console.log("🔌 Conectando a PostgreSQL (Neon)...");
 
-        // 1. Tabla Usuarios (Con recuperación de clave, LOPDP y cambio obligatorio de contraseña)
+        // 1. Tabla Usuarios
         await client.query(`CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
             email TEXT UNIQUE NOT NULL,
@@ -20,7 +20,6 @@ export async function inicializarBaseDeDatos() {
             anonymized_at TIMESTAMP WITH TIME ZONE
         )`);
 
-        // Migration/Alteración segura para bases de datos ya desplegadas en Neon
         await client.query(`
             ALTER TABLE users 
             ADD COLUMN IF NOT EXISTS reset_password_token TEXT,
@@ -74,7 +73,7 @@ export async function inicializarBaseDeDatos() {
             status TEXT DEFAULT 'Pendiente'
         )`);
 
-        // 6. Perfil de Boda
+        // 6. Perfil de Boda (con columnas de control de estado y modo solo lectura)
         await client.query(`CREATE TABLE IF NOT EXISTS wedding_profiles (
             user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
             wedding_date TEXT,
@@ -82,8 +81,16 @@ export async function inicializarBaseDeDatos() {
             estilos_preferidos TEXT,
             invitados_estimados INTEGER,
             partner_name TEXT,
-            avatar TEXT
+            avatar TEXT,
+            status VARCHAR(50) DEFAULT 'En Proceso',
+            is_read_only BOOLEAN DEFAULT FALSE
         )`);
+
+        await client.query(`
+            ALTER TABLE wedding_profiles
+            ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'En Proceso',
+            ADD COLUMN IF NOT EXISTS is_read_only BOOLEAN DEFAULT FALSE;
+        `);
 
         // 7. Presupuesto
         await client.query(`CREATE TABLE IF NOT EXISTS budget (
@@ -114,7 +121,7 @@ export async function inicializarBaseDeDatos() {
             estado TEXT DEFAULT 'Contratado'
         )`);
 
-        // 10. LOPDP: Tabla de Registro de Consentimiento Informado
+        // 10. LOPDP: Registro de Consentimiento Informado
         await client.query(`
             CREATE TABLE IF NOT EXISTS user_consents (
                 id SERIAL PRIMARY KEY,
@@ -126,7 +133,7 @@ export async function inicializarBaseDeDatos() {
             );
         `);
 
-        // 11. LOPDP: Tabla de Logs de Auditoría
+        // 11. LOPDP: Logs de Auditoría
         await client.query(`
             CREATE TABLE IF NOT EXISTS audit_logs (
                 id SERIAL PRIMARY KEY,
@@ -138,11 +145,62 @@ export async function inicializarBaseDeDatos() {
             );
         `);
 
+        // 12. Módulos Adicionales (Restricciones, Mesas, Incidencias, Reseñas)
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS dietary_restrictions (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100) UNIQUE NOT NULL,
+                description TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS guest_dietary_restrictions (
+                guest_id INT REFERENCES guests(id) ON DELETE CASCADE,
+                restriction_id INT REFERENCES dietary_restrictions(id) ON DELETE CASCADE,
+                PRIMARY KEY (guest_id, restriction_id)
+            );
+
+            CREATE TABLE IF NOT EXISTS tables (
+                id SERIAL PRIMARY KEY,
+                user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+                table_number INT NOT NULL,
+                capacity INT NOT NULL DEFAULT 10,
+                location VARCHAR(100)
+            );
+
+            CREATE TABLE IF NOT EXISTS seat_assignments (
+                id SERIAL PRIMARY KEY,
+                table_id INT REFERENCES tables(id) ON DELETE CASCADE,
+                guest_id INT UNIQUE REFERENCES guests(id) ON DELETE CASCADE,
+                seat_number INT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS incidents (
+                id SERIAL PRIMARY KEY,
+                user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+                provider_id INT REFERENCES proveedores(id) ON DELETE SET NULL,
+                title VARCHAR(150) NOT NULL,
+                description TEXT NOT NULL,
+                status VARCHAR(50) DEFAULT 'Pendiente' CHECK (status IN ('Pendiente', 'En Proceso', 'Resuelto')),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                resolved_at TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS provider_reviews (
+                id SERIAL PRIMARY KEY,
+                user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+                provider_id INT REFERENCES proveedores(id) ON DELETE CASCADE,
+                rating INT CHECK (rating BETWEEN 1 AND 5),
+                comment TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, provider_id)
+            );
+        `);
+
         // ==============================================================
-        // ESTRUCTURAS AVANZADAS POSTGRESQL
+        // ESTRUCTURAS AVANZADAS POSTGRESQL (TRIGGERS, VISTAS, FUNCIONES)
         // ==============================================================
 
-        // A. Función en PL/pgSQL y Disparador (Trigger) para Presupuesto
+        // A. Función y Trigger para Presupuesto
         await client.query(`
             CREATE OR REPLACE FUNCTION recalcular_estado_presupuesto()
             RETURNS TRIGGER AS $$
@@ -157,9 +215,7 @@ export async function inicializarBaseDeDatos() {
                 RETURN NEW;
             END;
             $$ LANGUAGE plpgsql;
-        `);
 
-        await client.query(`
             DROP TRIGGER IF EXISTS trg_recalcular_presupuesto ON budget;
             CREATE TRIGGER trg_recalcular_presupuesto
             BEFORE INSERT OR UPDATE ON budget
@@ -167,7 +223,38 @@ export async function inicializarBaseDeDatos() {
             EXECUTE FUNCTION recalcular_estado_presupuesto();
         `);
 
-        // B. Vista Consultiva Compleja
+        // B. Función y Trigger de Cierre Automático de Boda
+        await client.query(`
+            CREATE OR REPLACE FUNCTION verificar_cierre_boda()
+            RETURNS TRIGGER AS $$
+            DECLARE
+                v_total_tasks INT;
+                v_completed_tasks INT;
+            BEGIN
+                SELECT COUNT(*), COUNT(*) FILTER (WHERE is_completed = TRUE)
+                INTO v_total_tasks, v_completed_tasks
+                FROM checklist
+                WHERE user_id = NEW.user_id;
+
+                IF v_total_tasks > 0 AND v_total_tasks = v_completed_tasks THEN
+                    UPDATE wedding_profiles
+                    SET status = 'Completada',
+                        is_read_only = TRUE
+                    WHERE user_id = NEW.user_id;
+                END IF;
+
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+
+            DROP TRIGGER IF EXISTS trg_verificar_cierre ON checklist;
+            CREATE TRIGGER trg_verificar_cierre
+            AFTER UPDATE OF is_completed ON checklist
+            FOR EACH ROW
+            EXECUTE FUNCTION verificar_cierre_boda();
+        `);
+
+        // C. Vista Consultiva Compleja
         await client.query(`
             CREATE OR REPLACE VIEW v_resumen_novias AS
             SELECT 
@@ -188,7 +275,7 @@ export async function inicializarBaseDeDatos() {
             GROUP BY u.id, u.name, u.email, wp.wedding_date, wp.budget_limit;
         `);
 
-        // C. LOPDP: Procedimiento Almacenado para "Derecho al Olvido"
+        // D. LOPDP: Procedimiento Almacenado para "Derecho al Olvido"
         await client.query(`
             CREATE OR REPLACE FUNCTION sp_anonimizar_usuario(p_user_id VARCHAR)
             RETURNS VOID AS $$

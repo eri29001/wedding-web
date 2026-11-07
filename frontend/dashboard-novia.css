@@ -908,3 +908,265 @@ body.show-chatbot .chatbot { opacity: 1; pointer-events: auto; transform: scale(
     background-color: #ffffff;
     border-color: #ffb74d;
 }
+
+/* Tabla de presupuesto*/
+/* Botón de eliminación en tabla */
+.btn-action-delete {
+    background: transparent;
+    border: none;
+    color: #e53935;
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-action-delete:hover {
+    background: #ffebee;
+    color: #b71c1c;
+}
+
+/* Badges interactivos de estado */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: inline-block;
+    transition: transform 0.15s ease;
+}
+
+.status-badge:hover {
+    transform: scale(1.05);
+}
+
+.status-badge.paid {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.status-badge.pending {
+    background-color: #fff3e0;
+    color: #ef6c00;
+    border: 1px solid #ffe0b2;
+}
+
+/* ==========================================================================
+   MEJORAS VISUALES PREMIUM & MICRO-INTERACCIONES (SaaS DE LUJO)
+   ========================================================================== */
+
+/* 1. Sombras de alta precisión y elevación en hover */
+.card {
+    background: #ffffff;
+    border-radius: 18px !important;
+    border: 1px solid rgba(226, 232, 240, 0.7) !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02) !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px -4px rgba(216, 27, 96, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03) !important;
+}
+
+/* 2. Barra de Navegación con toque Glassmorphism */
+.navbar {
+    background: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+
+/* 3. Barras de Progreso Estilo Píldora con Gradiente Luminoso */
+.barra-background {
+    height: 10px !important;
+    background: #f1f5f9 !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+}
+
+.barra-relleno {
+    border-radius: 20px !important;
+    box-shadow: 0 2px 8px rgba(216, 27, 96, 0.25);
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+/* 4. Botones con Efecto Activo y Feedback Táctil */
+.btn {
+    border-radius: 24px !important;
+    letter-spacing: 0.3px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #e91e63, #d81b60) !important;
+    box-shadow: 0 4px 14px rgba(216, 27, 96, 0.3) !important;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(216, 27, 96, 0.4) !important;
+}
+
+.btn-primary:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.btn-sm {
+    padding: 6px 16px !important;
+    font-size: 0.82rem !important;
+}
+
+/* 5. Badges e Indicadores con Dot Led */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px !important;
+    border-radius: 20px !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    border: none !important;
+}
+
+.status-badge.paid, .status-contratado {
+    background: #e8f5e9 !important;
+    color: #1b5e20 !important;
+}
+
+.status-badge.paid::before, .status-contratado::before {
+    content: "•";
+    color: #2e7d32;
+    font-size: 1.2rem;
+    line-height: 0;
+}
+
+.status-badge.pending, .status-pendiente {
+    background: #fff3e0 !important;
+    color: #e65100 !important;
+}
+
+.status-badge.pending::before, .status-pendiente::before {
+    content: "•";
+    color: #f57c00;
+    font-size: 1.2rem;
+    line-height: 0;
+}
+
+.status-en-revision {
+    background: #e3f2fd !important;
+    color: #0d47a1 !important;
+}
+
+/* 6. Entradas de Texto / Inputs Modernos */
+.modern-input, .modern-select {
+    border-radius: 12px !important;
+    border: 1.5px solid #e2e8f0 !important;
+    transition: all 0.2s ease !important;
+    background-color: #f8fafc !important;
+}
+
+.modern-input:focus, .modern-select:focus {
+    background-color: #ffffff !important;
+    border-color: #d81b60 !important;
+    box-shadow: 0 0 0 3px rgba(216, 27, 96, 0.12) !important;
+}
+
+/* 7. Ítems de Proveedores */
+.vendor-item {
+    transition: background 0.2s ease;
+    border-radius: 12px;
+    padding: 10px 12px !important;
+}
+
+.vendor-item:hover {
+    background-color: #fdf2f8;
+}
+
+/* 8. Scrollbar Personalizada */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #f472b6;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #d81b60;
+}
+
+/* ==========================================================================
+   ESTILOS DE IMPRESIÓN Y GENERACIÓN DE RESUMEN PDF (@media print)
+   ========================================================================== */
+@media print {
+    /* 1. Ocultar la barra de navegación, botones, filtros e íconos flotantes */
+    .navbar, 
+    .btn, 
+    button, 
+    .floating-btn, 
+    .fc-header-toolbar, 
+    .pastel-filters-container, 
+    .btn-action-delete, 
+    .close-modal-modern,
+    #toast-container,
+    #notifications-dropdown,
+    .custom-modal {
+        display: none !important;
+    }
+
+    /* 2. Configurar el formato de página (A4 / Carta) */
+    @page {
+        margin: 1.5cm;
+        size: A4 portrait;
+    }
+
+    body {
+        background: #ffffff !important;
+        color: #111111 !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        font-size: 11pt;
+    }
+
+    /* 3. Encabezado automático de informe */
+    body::before {
+        content: "RESUMEN EJECUTIVO DE PLANIFICACIÓN - AF WEDDING";
+        display: block;
+        text-align: center;
+        font-size: 16pt;
+        font-weight: bold;
+        color: #d81b60;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #d81b60;
+        padding-bottom: 8px;
+    }
+
+    /* 4. Estilizar las tarjetas para que no rompan feo entre páginas */
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 10px !important;
+        break-inside: avoid;
+        margin-bottom: 15px !important;
+        padding: 15px !important;
+    }
+
+    /* 5. Asegurar lectura limpia de tablas e ítems */
+    .vendor-item, .modern-table tr {
+        break-inside: avoid;
+    }
+
+    /* 6. Ocultar la cuadrícula completa del calendario para dejar solo eventos */
+    .fc-view-harness {
+        max-height: 300px;
+    }
+}

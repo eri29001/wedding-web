@@ -15,6 +15,30 @@ let budgetItems = [];
 let recommendedVendors = [];
 let selectedVendors = [];
 
+/* ==========================================================================
+   2. INICIALIZACIÓN DE LA APLICACIÓN (DOMContentLoaded)
+   ========================================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Cargar datos del usuario y perfil
+    cargarPerfilUsuario();
+
+    // 2. Consultar y sincronizar presupuesto desde la BD en Render
+    cargarPresupuestoDesdeBD();
+
+    // 3. Cargar información complementaria (canciones y notas)
+    cargarCancionesGuardadas();
+    cargarNotasRapidas();
+
+    // 4. Renderizar listas y configurar sanitizadores de inputs
+    renderVendorLists();
+    setupBudgetInputSanitizer();
+
+    // 5. Inicializar calendario si la función existe
+    if (typeof initCalendar === 'function') {
+        initCalendar();
+    }
+});
+
 /**
  * Valida y limpia el userId de localStorage para evitar errores 404 en la API
  */
@@ -939,6 +963,30 @@ async function obtenerPresupuestoBD() {
 /* ==========================================================================
    PRESUPUESTO SINCRONIZADO CON EL PERFIL DE LA NOVIA
    ========================================================================== */
+/* ==========================================================================
+   PERSISTENCIA Y GESTIÓN DE PRESUPUESTO (REEMPLAZO COMPLETO)
+   ========================================================================== */
+
+
+// 1. Cargar datos desde la BD en Render al iniciar
+async function cargarPresupuestoDesdeBD() {
+    const userId = localStorage.getItem('userId');
+    try {
+        const res = await fetch(`${API_URL}/budget?userId=${userId}`);
+        if (res.ok) {
+            budgetItems = await res.json();
+            localStorage.setItem('budgetItems', JSON.stringify(budgetItems));
+        } else {
+            budgetItems = JSON.parse(localStorage.getItem('budgetItems')) || [];
+        }
+    } catch (e) {
+        console.warn("Sin conexión con BD. Cargando copia local.");
+        budgetItems = JSON.parse(localStorage.getItem('budgetItems')) || [];
+    }
+    renderBudget('all');
+}
+
+// 2. Función renderBudget con Columna de Acciones y Cambio de Estado
 function renderBudget(filter = 'all') {
     const tbody = document.getElementById('budget-table-body');
     const budgetTotalDisplay = document.getElementById('budget-total');
@@ -946,72 +994,160 @@ function renderBudget(filter = 'all') {
     const modalBudgetTotal = document.getElementById('modal-budget-total');
     const budgetBarFill = document.getElementById('budget-bar-fill');
 
-    // 1. Obtener el Presupuesto Total guardado por la novia en el Perfil
-    const presupuestoAsignado = parseFloat(localStorage.getItem('weddingBudget')) || 0;
-
-    // 2. Calcular la suma total de gastos reales en la lista
+    // 1. Obtener Presupuesto Asignado y calcular Total Gastado
+    const presupuestoAsignado = Math.max(0, parseFloat(localStorage.getItem('weddingBudget')) || 0);
     const totalGastado = budgetItems.reduce((acc, curr) => acc + Number(curr.real || 0), 0);
 
-    // 3. Actualizar los valores en la tarjeta y en el modal
+    const gastadoFmt = totalGastado.toLocaleString('es-EC');
+    const asignadoFmt = presupuestoAsignado.toLocaleString('es-EC');
+
+    // 2. Actualizar displays con formato de miles
     if (budgetTotalDisplay) {
-        budgetTotalDisplay.textContent = totalGastado.toLocaleString();
+        budgetTotalDisplay.textContent = gastadoFmt;
+        budgetTotalDisplay.style.color = (totalGastado > presupuestoAsignado && presupuestoAsignado > 0) ? '#E53935' : '#E65100';
     }
-    
+
     if (budgetLimitDisplay) {
-        budgetLimitDisplay.textContent = `/ $${presupuestoAsignado.toLocaleString()}`;
+        budgetLimitDisplay.textContent = `/ $${asignadoFmt}`;
     }
 
     if (modalBudgetTotal) {
-        modalBudgetTotal.textContent = `$${totalGastado.toLocaleString()} de $${presupuestoAsignado.toLocaleString()}`;
+        modalBudgetTotal.textContent = `$${gastadoFmt} de $${asignadoFmt}`;
+        modalBudgetTotal.style.color = (totalGastado > presupuestoAsignado && presupuestoAsignado > 0) ? '#E53935' : '#FB8C00';
     }
 
-    // 4. Calcular el porcentaje consumido para la barra de progreso
+    // 3. Actualizar barra de progreso y colores de alerta
     if (budgetBarFill) {
-        let porcentaje = 0;
-        if (presupuestoAsignado > 0) {
-            porcentaje = Math.min(100, Math.round((totalGastado / presupuestoAsignado) * 100));
-        }
-        
+        let porcentaje = presupuestoAsignado > 0 ? Math.min(100, Math.round((totalGastado / presupuestoAsignado) * 100)) : 0;
         budgetBarFill.style.width = `${porcentaje}%`;
-
-        // Alerta visual en rojo si el gasto total supera el presupuesto asignado
-        if (totalGastado > presupuestoAsignado && presupuestoAsignado > 0) {
-            budgetBarFill.style.background = 'linear-gradient(90deg, #E53935, #C62828)';
-        } else {
-            budgetBarFill.style.background = 'linear-gradient(90deg, #FFB74D, #FB8C00)';
-        }
+        budgetBarFill.style.background = (totalGastado > presupuestoAsignado && presupuestoAsignado > 0)
+            ? 'linear-gradient(90deg, #E53935, #C62828)'
+            : 'linear-gradient(90deg, #FFB74D, #FB8C00)';
     }
 
-    // 5. Renderizar las filas dentro de la tabla del modal
+    // 4. Renderizar filas en la tabla (incluye columna de eliminación y toggle de estado)
     if (!tbody) return;
     tbody.innerHTML = '';
 
     const filtrados = budgetItems.filter(b => filter === 'all' || b.status === filter);
 
-    filtrados.forEach(b => {
-        const statusBadge = b.status === 'paid' 
-            ? '<span class="status-badge paid">Pagado</span>' 
-            : '<span class="status-badge pending">Pendiente</span>';
-            
+    if (filtrados.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted p-20">
+                    No hay servicios registrados en esta categoría.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    filtrados.forEach((b, index) => {
+        const isPaid = b.status === 'paid';
+        const badgeClass = isPaid ? 'status-badge paid' : 'status-badge pending';
+        const badgeText = isPaid ? 'Pagado' : 'Pendiente';
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><strong>${b.item}</strong></td>
-            <td>$${Number(b.real).toLocaleString()}</td>
-            <td>$${Number(b.estimated).toLocaleString()}</td>
-            <td>${statusBadge}</td>
+            <td>$${Number(b.real).toLocaleString('es-EC')}</td>
+            <td>$${Number(b.estimated || b.real).toLocaleString('es-EC')}</td>
+            <td>
+                <span class="${badgeClass}" style="cursor: pointer;" title="Clic para cambiar estado" onclick="toggleEstadoGasto(${index})">
+                    ${badgeText}
+                </span>
+            </td>
+            <td style="text-align: center;">
+                <button type="button" class="btn-action-delete" title="Quitar servicio" onclick="eliminarGasto(${index})">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </td>
         `;
         tbody.appendChild(tr);
     });
-
-    // Dentro de renderBudget()
-    if (totalGastado > presupuestoAsignado && presupuestoAsignado > 0) {
-        budgetTotalDisplay.style.color = '#E53935'; // Rojo de alerta
-        budgetBarFill.style.background = 'linear-gradient(90deg, #E53935, #C62828)';
-    } else {
-        budgetTotalDisplay.style.color = '#E65100'; // Naranja original
-        budgetBarFill.style.background = 'linear-gradient(90deg, #FFB74D, #FB8C00)';
-    }
 }
+
+// 3. Eliminar gasto y sincronizar con la BD (DELETE)
+window.eliminarGasto = async function(index) {
+    const itemEliminado = budgetItems[index];
+    if (!itemEliminado) return;
+
+    budgetItems.splice(index, 1);
+    localStorage.setItem('budgetItems', JSON.stringify(budgetItems));
+    renderBudget('all');
+
+    if (typeof showToast === 'function') showToast(`Se eliminó "${itemEliminado.item}"`);
+
+    try {
+        await fetch(`${API_URL}/budget/${itemEliminado.id}`, { method: 'DELETE' });
+    } catch (e) {
+        console.error("Error al eliminar en BD:", e);
+    }
+};
+
+// 4. Cambiar estado Pagado/Pendiente y actualizar BD (PUT)
+window.toggleEstadoGasto = async function(index) {
+    const item = budgetItems[index];
+    if (!item) return;
+
+    item.status = item.status === 'paid' ? 'pending' : 'paid';
+    localStorage.setItem('budgetItems', JSON.stringify(budgetItems));
+    renderBudget('all');
+
+    try {
+        await fetch(`${API_URL}/budget/${item.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: item.status })
+        });
+    } catch (e) {
+        console.error("Error al actualizar estado en BD:", e);
+    }
+};
+
+// 5. Agregar nuevo gasto y guardar en BD (POST)
+window.guardarNuevoGastoBD = async function() {
+    const nombreInput = document.getElementById('gasto-nombre');
+    const realInput = document.getElementById('gasto-real');
+    const userId = localStorage.getItem('userId');
+
+    const nombre = nombreInput ? nombreInput.value.trim() : '';
+    const valor = realInput ? parseFloat(realInput.value) : 0;
+
+    if (!nombre || isNaN(valor) || valor <= 0) {
+        alert("Por favor ingresa un nombre y un valor válido.");
+        return;
+    }
+
+    const nuevoGasto = { userId, item: nombre, real: valor, estimated: valor, status: 'pending' };
+
+    try {
+        const res = await fetch(`${API_URL}/budget`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nuevoGasto)
+        });
+
+        if (res.ok) {
+            const creadoBD = await res.json();
+            budgetItems.push(creadoBD);
+        } else {
+            nuevoGasto.id = Date.now();
+            budgetItems.push(nuevoGasto);
+        }
+    } catch (e) {
+        nuevoGasto.id = Date.now();
+        budgetItems.push(nuevoGasto);
+    }
+
+    localStorage.setItem('budgetItems', JSON.stringify(budgetItems));
+    if (nombreInput) nombreInput.value = '';
+    if (realInput) realInput.value = '';
+
+    if (typeof toggleFormGasto === 'function') toggleFormGasto();
+    renderBudget('all');
+    if (typeof showToast === 'function') showToast(`Servicio "${nombre}" guardado permanentemente`);
+};
 
 window.filterBudgetTable = function(filter, btnEl) {
     document.querySelectorAll('#modal-budget .filter-pill').forEach(b => b.classList.remove('active'));
@@ -1043,84 +1179,381 @@ function initBudgetChart() {
 }
 
 /* ==========================================================================
-   8. PROVEEDORES
+   8. PROVEEDORES (SINCRONIZACIÓN AUTOMÁTICA Y PERSISTENTE CON BD)
    ========================================================================== */
+
+// 1. Cargar proveedores desde BD (o copia local) al iniciar
 async function cargarProveedoresBD() {
-    const userId = obtenerUserIdValido();
-    if (userId) {
-        try {
-            const res = await fetch(`${API_URL}/vendors/${userId}`);
-            if (res.ok) {
-                const data = await res.json();
+    const userId = typeof obtenerUserIdValido === 'function' ? obtenerUserIdValido() : (localStorage.getItem('userId') || 'default_user');
+    
+    // Carga inmediata de localStorage mientras responde la BD
+    const localRec = localStorage.getItem('recommendedVendors');
+    const localSel = localStorage.getItem('selectedVendors');
+    if (localRec) recommendedVendors = JSON.parse(localRec);
+    if (localSel) selectedVendors = JSON.parse(localSel);
+
+    try {
+        const res = await fetch(`${API_URL}/vendors/${userId}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.recommended || data.selected) {
                 recommendedVendors = data.recommended || [];
                 selectedVendors = data.selected || [];
+            } else if (Array.isArray(data)) {
+                selectedVendors = data;
             }
-        } catch (e) { console.warn("Error al cargar proveedores."); }
+            localStorage.setItem('recommendedVendors', JSON.stringify(recommendedVendors));
+            localStorage.setItem('selectedVendors', JSON.stringify(selectedVendors));
+        }
+    } catch (e) {
+        console.warn("Sin conexión con BD. Usando respaldo local.");
     }
 
+    // Valores iniciales por defecto si no existen datos previos
     if (recommendedVendors.length === 0 && selectedVendors.length === 0) {
         recommendedVendors = [
-            { id: 101, name: "Lumina Studio (Foto & Video)", category: "Fotografía", rating: "5.0 ★" },
-            { id: 102, name: "Florería Rosas & Miel", category: "Decoración", rating: "4.9 ★" }
+            { 
+                id: 101, 
+                name: "Lumina Studio (Foto & Video)", 
+                category: "Fotografía", 
+                rating: "5.0 ★",
+                instagram: "https://instagram.com",
+                tiktok: "https://tiktok.com",
+                website: "https://google.com"
+            },
+            { 
+                id: 102, 
+                name: "Florería Rosas & Miel", 
+                category: "Decoración", 
+                rating: "4.9 ★",
+                instagram: "https://instagram.com",
+                tiktok: "https://tiktok.com",
+                website: "https://google.com"
+            }
         ];
         selectedVendors = [
-            { id: 201, name: "Palacio Eventos Guayaquil", category: "Salón de Eventos", phone: "+593990001122" }
+            { 
+                id: 201, 
+                name: "Palacio Eventos Guayaquil", 
+                category: "Salón de Eventos", 
+                phone: "+593990001122",
+                status: "Contratado"
+            }
         ];
+        localStorage.setItem('recommendedVendors', JSON.stringify(recommendedVendors));
+        localStorage.setItem('selectedVendors', JSON.stringify(selectedVendors));
     }
 
     renderVendorLists();
 }
 
-function renderVendorLists() {
-    const recContainer = document.getElementById('recommended-vendors-list');
-    const selContainer = document.getElementById('selected-vendors-list');
+// 2. Función Helper Centralizada para guardar cambios en BD
+async function guardarProveedoresBD() {
+    // 1. Guardar siempre en localStorage
+    localStorage.setItem('recommendedVendors', JSON.stringify(recommendedVendors));
+    localStorage.setItem('selectedVendors', JSON.stringify(selectedVendors));
 
-    if (recContainer) {
-        recContainer.innerHTML = recommendedVendors.map(v => `
-            <div class="vendor-item">
-                <strong class="vendor-name-link" onclick="openVendorDetails(${v.id})">${v.name}</strong>
-                <p class="text-muted text-small">${v.category} - ${v.rating}</p>
-            </div>
-        `).join('');
-    }
-
-    if (selContainer) {
-        selContainer.innerHTML = selectedVendors.map(v => `
-            <div class="vendor-item flex-between-center">
-                <div>
-                    <strong class="vendor-name-link" onclick="openVendorDetails(${v.id})">${v.name}</strong>
-                    <p class="text-muted text-small">${v.category}</p>
-                </div>
-                <button class="btn-action-delete" onclick="prepararEliminarProveedor(${v.id})"><i class="fas fa-trash"></i></button>
-            </div>
-        `).join('');
+    // 2. Enviar a la Base de Datos en Render
+    const userId = typeof obtenerUserIdValido === 'function' ? obtenerUserIdValido() : (localStorage.getItem('userId') || 'default_user');
+    
+    try {
+        await fetch(`${API_URL}/vendors/${userId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: userId,
+                recommended: recommendedVendors,
+                selected: selectedVendors
+            })
+        });
+    } catch (e) {
+        console.warn("No se pudo sincronizar con la BD. Guardado en almacenamiento local.");
     }
 }
 
-window.openVendorDetails = (id) => {
-    const vendor = [...recommendedVendors, ...selectedVendors].find(v => v.id === id);
-    const content = document.getElementById('vendor-detail-content');
-    if (content && vendor) {
-        content.innerHTML = `
-            <h4>${vendor.name}</h4>
-            <p class="text-muted mb-15">${vendor.category}</p>
-            <p><strong>Contacto:</strong> ${vendor.phone || 'Disponible bajo previa reserva'}</p>
+// 3. Renderizar listas de proveedores
+function renderVendorLists(filterCat = 'all') {
+    const recContainer = document.getElementById('recommended-vendors-list');
+    const selContainer = document.getElementById('selected-vendors-list');
+
+    // Proveedores Recomendados
+    if (recContainer) {
+        const filtrados = recommendedVendors.filter(v => filterCat === 'all' || v.category.toLowerCase().includes(filterCat.toLowerCase()));
+
+        if (filtrados.length === 0) {
+            recContainer.innerHTML = `<p class="text-muted text-center p-20">No hay recomendaciones en esta categoría.</p>`;
+        } else {
+            recContainer.innerHTML = filtrados.map(v => `
+                <div class="vendor-item flex-between-center" style="gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="flex: 1; cursor: pointer;" onclick="verEstadisticasProveedor(${v.id})">
+                        <strong class="vendor-name-link" style="color: #d81b60; font-size: 0.95rem;">${v.name}</strong>
+                        <p class="text-muted text-small mb-0" style="margin: 0; font-size: 0.8rem; color: #666;">${v.category} • ${v.rating || '5.0 ★'}</p>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary" style="background: #d81b60; color: #fff; border: none; padding: 6px 14px; border-radius: 20px; font-weight: bold; cursor: pointer;" onclick="seleccionarRecomendado(${v.id})">
+                        Seleccionar
+                    </button>
+                </div>
+            `).join('');
+        }
+    }
+
+    // Mis Proveedores Seleccionados
+    /* ==========================================================================
+   REEMPLAZO EN renderVendorLists() - VISTA DE SOLO LECTURA PARA LA NOVIA
+   ========================================================================== */
+
+// Mis Proveedores Seleccionados (Lectura de Estado)
+if (selContainer) {
+    if (selectedVendors.length === 0) {
+        selContainer.innerHTML = `<p class="text-muted text-center p-20">Aún no has contratado ni seleccionado proveedores.</p>`;
+    } else {
+        selContainer.innerHTML = selectedVendors.map(v => {
+            const statusStr = v.status || 'Pendiente';
+            let statusBadge = '';
+
+            // Definición de insignias de solo lectura
+            if (statusStr === 'Contratado') {
+                statusBadge = `<span class="status-badge status-contratado">✅ Contratado</span>`;
+            } else if (statusStr === 'En Revisión') {
+                statusBadge = `<span class="status-badge status-en-revision">🔍 En Revisión por Andrea</span>`;
+            } else {
+                statusBadge = `<span class="status-badge status-pendiente">⏳ Pendiente</span>`;
+            }
+
+            return `
+                <div class="vendor-item flex-between-center" style="gap: 10px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="flex: 1;">
+                        <strong class="vendor-name-link" style="cursor: pointer; color: #d81b60;" onclick="verEstadisticasProveedor(${v.id})">${v.name}</strong>
+                        <p class="text-muted text-small mb-10" style="margin-bottom: 6px; font-size: 0.8rem; color: #666;">${v.category || 'Servicio'}</p>
+                        <div class="flex-center-gap" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            ${statusBadge}
+                            <button type="button" class="btn btn-ghost text-xs" style="padding: 4px 8px; background: transparent; border: none; cursor: pointer;" onclick="verContratoProveedor(${v.id})">
+                                <i class="fas fa-file-pdf" style="color: #d81b60;"></i> Contrato
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-action-delete" style="background: transparent; border: none; color: #e53935; cursor: pointer; padding: 6px;" title="Eliminar" onclick="prepararEliminarProveedor(${v.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                `;
+            }).join('');
+        }
+    }
+}
+
+// 4. Mover de Recomendados a Mis Proveedores y Guardar en BD
+window.seleccionarRecomendado = async function(id) {
+    const recIndex = recommendedVendors.findIndex(v => v.id === id);
+    if (recIndex !== -1) {
+        const [vendor] = recommendedVendors.splice(recIndex, 1);
+        vendor.status = 'Pendiente';
+        selectedVendors.push(vendor);
+        
+        renderVendorLists();
+        if (typeof showToast === 'function') showToast(`Se agregó "${vendor.name}" a Mis Proveedores`);
+
+        await guardarProveedoresBD();
+    }
+};
+
+// 5. Cambiar Estado de Trámite y Guardar en BD
+window.cambiarEstadoProveedorBD = async function(vendorId, nuevoEstado) {
+    const vendor = selectedVendors.find(v => v.id === vendorId);
+    if (vendor) {
+        vendor.status = nuevoEstado;
+        renderVendorLists();
+        if (typeof showToast === 'function') showToast(`Estado de "${vendor.name}" actualizado a ${nuevoEstado}`);
+
+        await guardarProveedoresBD();
+    }
+};
+
+// 6. Agregar Proveedor Manualmente desde el Modal de Registro
+window.addNewVendorBD = async function() {
+    const nameInput = document.getElementById('new-vendor-name');
+    const categoryInput = document.getElementById('new-vendor-category');
+    const statusInput = document.getElementById('new-vendor-status');
+    const phoneInput = document.getElementById('new-vendor-phone');
+
+    const name = nameInput ? nameInput.value.trim() : '';
+    const category = categoryInput ? categoryInput.value : 'Otro';
+    const status = statusInput ? statusInput.value : 'Pendiente';
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+
+    if (!name) {
+        alert("Por favor ingresa el nombre del proveedor.");
+        return;
+    }
+
+    const newVendor = {
+        id: Date.now(),
+        name,
+        category,
+        status,
+        phone,
+        rating: "5.0 ★"
+    };
+
+    selectedVendors.push(newVendor);
+
+    if (nameInput) nameInput.value = '';
+    if (phoneInput) phoneInput.value = '';
+    if (typeof closeAllModals === 'function') closeAllModals();
+
+    renderVendorLists();
+    if (typeof showToast === 'function') showToast(`Proveedor "${name}" registrado correctamente`);
+
+    await guardarProveedoresBD();
+};
+
+// 7. Modal de Detalles / Marketplace
+window.verEstadisticasProveedor = function(vendorId) {
+    const vendor = [...recommendedVendors, ...selectedVendors].find(v => v.id === vendorId) || 
+                   { id: vendorId, name: "Proveedor", category: "Servicio", rating: "5.0 ★" };
+
+    const modalTitle = document.getElementById('title-vendor-details');
+    const container = document.getElementById('vendor-detail-content');
+
+    if (modalTitle) modalTitle.textContent = vendor.name;
+
+    const instagram = vendor.instagram || "https://instagram.com";
+    const tiktok = vendor.tiktok || "https://tiktok.com";
+    const website = vendor.website || "https://google.com";
+
+    if (container) {
+        container.innerHTML = `
+            <div class="vendor-stats-card p-20 border-rounded bg-light mb-20 text-center" style="background: #fafafa; border-radius: 14px; padding: 15px; border: 1px solid #eee; text-align: center; margin-bottom: 15px;">
+                <span class="badge-verified" style="background: #e8f5e9; color: #2e7d32; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;"><i class="fas fa-check-circle"></i> Proveedor Verificado</span>
+                <h4 class="text-pink font-bold mt-5" style="color: #d81b60; margin-top: 5px;">${(vendor.category || 'Servicio').toUpperCase()}</h4>
+                <div class="rating-stars my-10" style="font-size: 1.3rem; color: #FFC107; margin: 10px 0;">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star-half-alt"></i>
+                    <span class="text-dark font-bold text-small" style="color: #333; font-size: 0.9rem;">(${vendor.rating || '5.0 ★'})</span>
+                </div>
+
+                <div class="vendor-social-links flex-center-gap mt-15" style="display: flex; justify-content: center; gap: 10px; margin-top: 12px;">
+                    <a href="${instagram}" target="_blank" class="social-btn instagram" style="background: #e1306c; color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; text-decoration: none; font-weight: bold;"><i class="fab fa-instagram"></i> Instagram</a>
+                    <a href="${tiktok}" target="_blank" class="social-btn tiktok" style="background: #000; color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; text-decoration: none; font-weight: bold;"><i class="fab fa-tiktok"></i> TikTok</a>
+                    <a href="${website}" target="_blank" class="social-btn web" style="background: #4a148c; color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; text-decoration: none; font-weight: bold;"><i class="fas fa-globe"></i> Portafolio</a>
+                </div>
+            </div>
+
+            <h5 class="modern-label mb-10" style="font-weight: bold; font-size: 0.9rem; margin-bottom: 8px;">
+                <i class="fas fa-award text-pink" style="color: #d81b60;"></i> Destaca en (Reconocimientos):
+            </h5>
+            <div class="vendor-badges-grid mb-20" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+                <div class="skill-badge-item" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fff; border: 1px solid #eee; border-radius: 8px;">
+                    <div class="badge-icon" style="color: #FFC107;"><i class="fas fa-bolt"></i></div>
+                    <div class="badge-info">
+                        <strong style="font-size: 0.85rem; display: block;">Respuesta Rápida</strong>
+                        <p style="margin: 0; font-size: 0.75rem; color: #666;">Responde en menos de 1 hora</p>
+                    </div>
+                </div>
+                <div class="skill-badge-item" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fff; border: 1px solid #eee; border-radius: 8px;">
+                    <div class="badge-icon" style="color: #4CAF50;"><i class="fas fa-clock"></i></div>
+                    <div class="badge-info">
+                        <strong style="font-size: 0.85rem; display: block;">100% Puntual</strong>
+                        <p style="margin: 0; font-size: 0.75rem; color: #666;">Excelente cumplimiento de horarios</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-action-footer flex-center-gap mt-20" style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-ghost" style="flex: 1;" onclick="closeAllModals()">Cerrar</button>
+                <button type="button" class="btn btn-primary" style="flex: 2; background: #d81b60; color: #fff; border: none; padding: 10px; border-radius: 20px; font-weight: bold; cursor: pointer;" onclick="seleccionarProveedorDesdeModal(${vendor.id})">
+                    <i class="fas fa-check"></i> Seleccionar Proveedor
+                </button>
+            </div>
         `;
     }
-    openModal('modal-vendor-details');
+
+    if (typeof openModal === 'function') openModal('modal-vendor-details');
 };
 
+// Aliases para llamadas antiguas
+window.openVendorDetails = window.verEstadisticasProveedor;
+window.verDetallesProveedor = window.verEstadisticasProveedor;
+
+/* ==========================================================================
+   VISOR Y DESCARGA DE CONTRATOS PDF
+   ========================================================================== */
+
+/* ==========================================================================
+   VISOR Y DESCARGA DE CONTRATOS PDF (CON SOLUCIÓN DE SEGURIDAD X-FRAME)
+   ========================================================================== */
+
+window.verContratoProveedor = function(vendorId) {
+    const vendor = selectedVendors.find(v => v.id === vendorId);
+    const title = document.getElementById('title-modal-pdf');
+    const container = document.getElementById('pdf-container');
+    const downloadBtn = document.getElementById('btn-download-pdf');
+
+    if (title && vendor) {
+        title.textContent = `Contrato: ${vendor.name}`;
+    }
+
+    const contractUrl = vendor?.contractUrl;
+
+    if (container) {
+        if (contractUrl) {
+            // Usamos Google Docs Viewer para evitar bloqueos de X-Frame-Options de servidores externos
+            const embedUrl = `https://docs.google.com/gview?url=${encodeURIComponent(contractUrl)}&embedded=true`;
+            container.innerHTML = `<iframe src="${embedUrl}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+            
+            if (downloadBtn) {
+                downloadBtn.style.display = 'inline-flex';
+                downloadBtn.href = contractUrl;
+                downloadBtn.setAttribute('download', `Contrato_${vendor.name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+            }
+        } else {
+            // Vista limpia y elegante cuando Andrea aún no adjunta el documento
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 20px;">
+                    <i class="fas fa-file-pdf" style="font-size: 3.8rem; color: #d81b60; margin-bottom: 15px;"></i>
+                    <h4 style="margin: 0 0 8px 0; color: #333; font-weight: bold;">Documento en Proceso de Verificación</h4>
+                    <p style="font-size: 0.88rem; max-width: 380px; margin: 0; color: #666; line-height: 1.4;">
+                        Se adjuntará el PDF oficial firmado una vez finalizado el contrato con el proveedor.
+                    </p>
+                </div>
+            `;
+            if (downloadBtn) {
+                downloadBtn.style.display = 'none'; // Ocultar botón de descarga si no hay archivo activo
+            }
+        }
+    }
+
+    if (typeof openModal === 'function') {
+        openModal('modal-pdf');
+    }
+};
+
+// 8. Eliminar Proveedor y Guardar en BD
 window.prepararEliminarProveedor = (id) => {
     vendorToDeleteId = id;
-    openModal('modal-confirm-delete');
+    if (typeof openModal === 'function') openModal('modal-confirm-delete');
 };
 
-window.ejecutarEliminacion = () => {
+window.ejecutarEliminacion = async () => {
     if (vendorToDeleteId) {
+        const item = selectedVendors.find(v => v.id === vendorToDeleteId);
         selectedVendors = selectedVendors.filter(v => v.id !== vendorToDeleteId);
+        if (item) {
+            recommendedVendors.push(item);
+        }
         renderVendorLists();
+        if (typeof showToast === 'function') showToast('Proveedor eliminado');
+
+        await guardarProveedoresBD();
     }
-    cerrarModalEliminar();
+    if (typeof cerrarModalEliminar === 'function') {
+        cerrarModalEliminar();
+    } else if (typeof closeAllModals === 'function') {
+        closeAllModals();
+    }
 };
 
 /* ==========================================================================
@@ -1224,39 +1657,146 @@ function iniciarCuentaRegresiva() {
 }
 
 /* ==========================================================================
-   AGREGAR AL FINAL DE DASHBOARD-NOVIA.JS (SINCRONIZADO CON LA BD)
+   SISTEMA DE NOTIFICACIONES SINCRONIZADO CON LA BASE DE DATOS (RENDER)
    ========================================================================== */
 
-// 1. Notificaciones Flotantes (Toasts) y Centro de Alertas
-window.showToast = function(mensaje, tipo = 'success') {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
+/* ==========================================================================
+   SISTEMA DE NOTIFICACIONES CORREGIDO (APLICA ID DE TU HTML Y PERSISTENCIA)
+   ========================================================================== */
 
-    const toast = document.createElement('div');
-    toast.className = `toast-item toast-${tipo}`;
-    toast.innerHTML = `<i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> <span>${mensaje}</span>`;
+let notificationsList = [];
 
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-    }, 3200);
-};
+// 1. Cargar notificaciones desde BD o copia local
+async function cargarNotificacionesBD() {
+    const userId = typeof obtenerUserIdValido === 'function' ? obtenerUserIdValido() : (localStorage.getItem('userId') || 'default_user');
 
-window.toggleNotificationsMenu = function() {
-    const dropdown = document.getElementById('notifications-dropdown');
-    if (dropdown) dropdown.classList.toggle('hidden');
-};
+    // Revisar primero copia guardada en localStorage
+    const savedLocal = localStorage.getItem('notificationsList');
+    if (savedLocal) {
+        try { notificationsList = JSON.parse(savedLocal); } catch(e){}
+    }
 
-window.marcarTodasLeidas = function(e) {
-    if (e) e.stopPropagation();
+    // Intentar consultar BD en Render
+    try {
+        const res = await fetch(`${API_URL}/notifications?userId=${userId}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+                notificationsList = data;
+            }
+        }
+    } catch (e) {
+        console.warn("Usando respaldo local de notificaciones.");
+    }
+
+    // Si está vacío por ser la primera vez
+    if (!notificationsList || notificationsList.length === 0) {
+        notificationsList = [
+            { id: 1, title: "<strong>Andrea</strong> aprobó el proveedor Catering Gourmet.", time: "Hace 10 min", type: "success", read: false },
+            { id: 2, title: "Recuerda revisar el contrato de Fotografía.", time: "Hace 1 hora", type: "warning", read: false }
+        ];
+    }
+
+    localStorage.setItem('notificationsList', JSON.stringify(notificationsList));
+    renderNotifications();
+}
+
+// 2. Dibujar notificaciones en el <ul> con id "notifications-list"
+function renderNotifications() {
+    const listContainer = document.getElementById('notifications-list');
     const badge = document.getElementById('unread-notifications-badge');
-    const items = document.querySelectorAll('.notification-item.unread');
-    
-    items.forEach(item => item.classList.remove('unread'));
-    if (badge) badge.classList.add('hidden');
-    showToast('Notificaciones marcadas como leídas');
+
+    // Contar cuántas no están leídas
+    const unreadCount = notificationsList.filter(n => !n.read).length;
+
+    // Actualizar o Biswas el badge numérico
+    if (badge) {
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount;
+            badge.style.display = 'inline-block';
+            badge.classList.remove('hidden');
+        } else {
+            badge.textContent = '0';
+            badge.style.display = 'none';
+            badge.classList.add('hidden');
+        }
+    }
+
+    if (!listContainer) return;
+
+    if (notificationsList.length === 0) {
+        listContainer.innerHTML = `<li class="notification-item text-center p-15 text-muted text-xs">No tienes notificaciones.</li>`;
+        return;
+    }
+
+    listContainer.innerHTML = notificationsList.map(item => {
+        const isWarning = item.type === 'warning';
+        const iconClass = isWarning ? 'fa-exclamation-triangle text-orange' : 'fa-check-circle text-green';
+        const unreadClass = item.read ? '' : 'unread';
+
+        return `
+            <li class="notification-item ${unreadClass}">
+                <i class="fas ${iconClass}" aria-hidden="true"></i>
+                <div>
+                    <p class="mb-0 text-small">${item.title}</p>
+                    <span class="text-xs text-muted">${item.time || 'Reciente'}</span>
+                </div>
+            </li>
+        `;
+    }).join('');
+}
+
+// 3. Abrir / Cerrar el menú desplegable
+window.toggleNotificationsMenu = function(e) {
+    if (e) e.stopPropagation();
+    const dropdown = document.getElementById('notifications-dropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+    }
 };
+
+// 4. Marcar TODAS como leídas
+window.marcarTodasLeidas = async function(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation(); // Detener propagación para no abrir/cerrar el menú
+    }
+
+    // A. Actualizar en memoria y guardar en localStorage inmediatamente
+    notificationsList = notificationsList.map(n => ({ ...n, read: true }));
+    localStorage.setItem('notificationsList', JSON.stringify(notificationsList));
+    
+    // B. Re-renderizar UI
+    renderNotifications();
+
+    if (typeof showToast === 'function') {
+        showToast('Notificaciones marcadas como leídas');
+    }
+
+    // C. Petición a la BD en Render
+    const userId = typeof obtenerUserIdValido === 'function' ? obtenerUserIdValido() : (localStorage.getItem('userId') || 'default_user');
+    try {
+        await fetch(`${API_URL}/notifications/mark-read`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId })
+        });
+    } catch (err) {
+        console.warn("Actualizado localmente. Pendiente sincronizar con BD.");
+    }
+};
+
+// 5. Cerrar el menú desplegable si se hace clic fuera de él
+document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('notifications-dropdown');
+    const bellWrapper = document.querySelector('.notification-bell-wrapper');
+    
+    if (dropdown && !dropdown.classList.contains('hidden')) {
+        if (bellWrapper && !bellWrapper.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    }
+});
 
 // 2. Filtro de Recomendaciones por Categoría
 window.filtrarRecomendados = function(categoria, btn) {
@@ -1354,3 +1894,345 @@ window.logout = function() {
     localStorage.removeItem('usuarioLogueado');
     window.location.href = 'index.html';
 };
+
+/* ==========================================================================
+   GESTIÓN DINÁMICA DE PRESUPUESTO (AGREGAR, EDITAR, ELIMINAR)
+   ========================================================================== */
+
+// 1. Alternar visibilidad del formulario para agregar gasto
+window.toggleFormGasto = function() {
+    const form = document.getElementById('form-nuevo-gasto');
+    if (form) form.classList.toggle('hidden');
+};
+
+// 2. Renderizar Tabla de Presupuesto con formato, botón Eliminar y alternador de estado
+function renderBudget(filter = 'all') {
+    const tbody = document.getElementById('budget-table-body');
+    const budgetTotalDisplay = document.getElementById('budget-total');
+    const budgetLimitDisplay = document.getElementById('budget-limit-display');
+    const modalBudgetTotal = document.getElementById('modal-budget-total');
+    const budgetBarFill = document.getElementById('budget-bar-fill');
+
+    const presupuestoAsignado = Math.max(0, parseFloat(localStorage.getItem('weddingBudget')) || 0);
+    const totalGastado = budgetItems.reduce((acc, curr) => acc + Number(curr.real || 0), 0);
+
+    // Formatear números con comas (Ej: $6,900)
+    const gastadoFmt = totalGastado.toLocaleString('es-EC');
+    const asignadoFmt = presupuestoAsignado.toLocaleString('es-EC');
+
+    if (budgetTotalDisplay) budgetTotalDisplay.textContent = gastadoFmt;
+    if (budgetLimitDisplay) budgetLimitDisplay.textContent = `/ $${asignadoFmt}`;
+
+    if (modalBudgetTotal) {
+        modalBudgetTotal.textContent = `$${gastadoFmt} de $${asignadoFmt}`;
+        // Alerta visual en rojo si supera el presupuesto asignado
+        if (totalGastado > presupuestoAsignado && presupuestoAsignado > 0) {
+            modalBudgetTotal.style.color = "#E53935";
+            modalBudgetTotal.style.fontWeight = "800";
+        } else {
+            modalBudgetTotal.style.color = "#FB8C00";
+        }
+    }
+
+    if (budgetBarFill) {
+        let porcentaje = presupuestoAsignado > 0 ? Math.min(100, Math.round((totalGastado / presupuestoAsignado) * 100)) : 0;
+        budgetBarFill.style.width = `${porcentaje}%`;
+        budgetBarFill.style.background = (totalGastado > presupuestoAsignado && presupuestoAsignado > 0)
+            ? 'linear-gradient(90deg, #E53935, #C62828)'
+            : 'linear-gradient(90deg, #FFB74D, #FB8C00)';
+    }
+
+    if (!tbody) return;
+
+    const filtrados = budgetItems.filter(b => filter === 'all' || b.status === filter);
+
+    if (filtrados.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted p-20">
+                    No hay servicios registrados en esta categoría.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = filtrados.map((item, index) => {
+        const isPaid = item.status === 'paid';
+        const badgeClass = isPaid ? 'status-badge paid' : 'status-badge pending';
+        const badgeText = isPaid ? 'Pagado' : 'Pendiente';
+
+        return `
+            <tr>
+                <td><strong>${item.item}</strong></td>
+                <td>$${Number(item.real).toLocaleString('es-EC')}</td>
+                <td>$${Number(item.estimated || item.real).toLocaleString('es-EC')}</td>
+                <td>
+                    <span class="${badgeClass}" style="cursor: pointer;" title="Clic para cambiar estado" onclick="toggleEstadoGasto(${index})">
+                        ${badgeText}
+                    </span>
+                </td>
+                <td style="text-align: center;">
+                    <button type="button" class="btn-action-delete" title="Quitar servicio" onclick="eliminarGasto(${index})">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// 3. Eliminar un servicio/gasto de la lista
+window.eliminarGasto = async function(index) {
+    const itemEliminado = budgetItems[index];
+    budgetItems.splice(index, 1);
+    
+    localStorage.setItem('budgetItems', JSON.stringify(budgetItems));
+    renderBudget('all');
+    if (typeof showToast === 'function') showToast(`Se eliminó "${itemEliminado.item}"`);
+
+    // Sincronización opcional con Backend en Render
+    try {
+        await fetch(`${API_URL}/budget/${itemEliminado.id}`, { method: 'DELETE' });
+    } catch (e) {
+        console.warn("Sincronizado localmente.");
+    }
+};
+
+// 4. Cambiar de Pagado a Pendiente y viceversa
+window.toggleEstadoGasto = function(index) {
+    budgetItems[index].status = budgetItems[index].status === 'paid' ? 'pending' : 'paid';
+    localStorage.setItem('budgetItems', JSON.stringify(budgetItems));
+    renderBudget('all');
+};
+
+// 5. Guardar nuevo servicio ingresado manualmente
+window.guardarNuevoGastoBD = async function() {
+    const nombreInput = document.getElementById('gasto-nombre');
+    const realInput = document.getElementById('gasto-real');
+
+    const nombre = nombreInput ? nombreInput.value.trim() : '';
+    const valor = realInput ? parseFloat(realInput.value) : 0;
+
+    if (!nombre || isNaN(valor) || valor <= 0) {
+        alert("Por favor ingresa un nombre y un valor válido.");
+        return;
+    }
+
+    const nuevoGasto = {
+        id: Date.now(),
+        item: nombre,
+        real: valor,
+        estimated: valor,
+        status: 'pending'
+    };
+
+    budgetItems.push(nuevoGasto);
+    localStorage.setItem('budgetItems', JSON.stringify(budgetItems));
+
+    nombreInput.value = '';
+    realInput.value = '';
+    toggleFormGasto();
+    renderBudget('all');
+
+    if (typeof showToast === 'function') showToast(`Servicio "${nombre}" agregado al presupuesto`);
+};
+
+/* ==========================================================================
+   PERSISTENCIA TOTAL CON BASE DE DATOS (PRESUPUESTO)
+   ========================================================================== */
+
+// 1. Cargar datos desde la BD al iniciar la página
+async function cargarPresupuestoDesdeBD() {
+    const userId = localStorage.getItem('userId');
+    try {
+        const res = await fetch(`${API_URL}/budget?userId=${userId}`);
+        if (res.ok) {
+            budgetItems = await res.json();
+            localStorage.setItem('budgetItems', JSON.stringify(budgetItems));
+        } else {
+            budgetItems = JSON.parse(localStorage.getItem('budgetItems')) || [];
+        }
+    } catch (e) {
+        console.warn("Sin conexión con BD. Cargando datos locales.");
+        budgetItems = JSON.parse(localStorage.getItem('budgetItems')) || [];
+    }
+    renderBudget('all');
+}
+
+// 2. Renderizar la tabla y el acumulado
+function renderBudget(filter = 'all') {
+    const tbody = document.getElementById('budget-table-body');
+    const budgetTotalDisplay = document.getElementById('budget-total');
+    const budgetLimitDisplay = document.getElementById('budget-limit-display');
+    const modalBudgetTotal = document.getElementById('modal-budget-total');
+    const budgetBarFill = document.getElementById('budget-bar-fill');
+
+    const presupuestoAsignado = Math.max(0, parseFloat(localStorage.getItem('weddingBudget')) || 0);
+    const totalGastado = budgetItems.reduce((acc, curr) => acc + Number(curr.real || 0), 0);
+
+    const gastadoFmt = totalGastado.toLocaleString('es-EC');
+    const asignadoFmt = presupuestoAsignado.toLocaleString('es-EC');
+
+    if (budgetTotalDisplay) budgetTotalDisplay.textContent = gastadoFmt;
+    if (budgetLimitDisplay) budgetLimitDisplay.textContent = `/ $${asignadoFmt}`;
+
+    if (modalBudgetTotal) {
+        modalBudgetTotal.textContent = `$${gastadoFmt} de $${asignadoFmt}`;
+        if (totalGastado > presupuestoAsignado && presupuestoAsignado > 0) {
+            modalBudgetTotal.style.color = "#E53935";
+            modalBudgetTotal.style.fontWeight = "800";
+        } else {
+            modalBudgetTotal.style.color = "#FB8C00";
+        }
+    }
+
+    if (budgetBarFill) {
+        let porcentaje = presupuestoAsignado > 0 ? Math.min(100, Math.round((totalGastado / presupuestoAsignado) * 100)) : 0;
+        budgetBarFill.style.width = `${porcentaje}%`;
+        budgetBarFill.style.background = (totalGastado > presupuestoAsignado && presupuestoAsignado > 0)
+            ? 'linear-gradient(90deg, #E53935, #C62828)'
+            : 'linear-gradient(90deg, #FFB74D, #FB8C00)';
+    }
+
+    if (!tbody) return;
+
+    const filtrados = budgetItems.filter(b => filter === 'all' || b.status === filter);
+
+    if (filtrados.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted p-20">
+                    No hay servicios registrados.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = filtrados.map((item, index) => {
+        const isPaid = item.status === 'paid';
+        const badgeClass = isPaid ? 'status-badge paid' : 'status-badge pending';
+        const badgeText = isPaid ? 'Pagado' : 'Pendiente';
+
+        return `
+            <tr>
+                <td><strong>${item.item}</strong></td>
+                <td>$${Number(item.real).toLocaleString('es-EC')}</td>
+                <td>$${Number(item.estimated || item.real).toLocaleString('es-EC')}</td>
+                <td>
+                    <span class="${badgeClass}" style="cursor: pointer;" onclick="toggleEstadoGasto(${index})">
+                        ${badgeText}
+                    </span>
+                </td>
+                <td style="text-align: center;">
+                    <button type="button" class="btn-action-delete" title="Quitar servicio" onclick="eliminarGasto(${index})">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// 3. Eliminar físicamente de la Base de Datos (DELETE)
+window.eliminarGasto = async function(index) {
+    const itemEliminado = budgetItems[index];
+    if (!itemEliminado) return;
+
+    // Actualización visual inmediata
+    budgetItems.splice(index, 1);
+    localStorage.setItem('budgetItems', JSON.stringify(budgetItems));
+    renderBudget('all');
+
+    showToast(`Se eliminó "${itemEliminado.item}"`);
+
+    // Sincronización DELETE con backend
+    try {
+        await fetch(`${API_URL}/budget/${itemEliminado.id}`, {
+            method: 'DELETE'
+        });
+    } catch (e) {
+        console.error("Error al eliminar en BD:", e);
+    }
+};
+
+// 4. Actualizar estado en la Base de Datos (PUT)
+window.toggleEstadoGasto = async function(index) {
+    const item = budgetItems[index];
+    if (!item) return;
+
+    const nuevoEstado = item.status === 'paid' ? 'pending' : 'paid';
+    item.status = nuevoEstado;
+
+    localStorage.setItem('budgetItems', JSON.stringify(budgetItems));
+    renderBudget('all');
+
+    // Sincronización PUT con backend
+    try {
+        await fetch(`${API_URL}/budget/${item.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: nuevoEstado })
+        });
+    } catch (e) {
+        console.error("Error al actualizar estado en BD:", e);
+    }
+};
+
+// 5. Agregar nuevo gasto a la Base de Datos (POST)
+window.guardarNuevoGastoBD = async function() {
+    const nombreInput = document.getElementById('gasto-nombre');
+    const realInput = document.getElementById('gasto-real');
+    const userId = localStorage.getItem('userId');
+
+    const nombre = nombreInput ? nombreInput.value.trim() : '';
+    const valor = realInput ? parseFloat(realInput.value) : 0;
+
+    if (!nombre || isNaN(valor) || valor <= 0) {
+        alert("Por favor ingresa un nombre y un valor válido.");
+        return;
+    }
+
+    const nuevoGasto = {
+        userId,
+        item: nombre,
+        real: valor,
+        estimated: valor,
+        status: 'pending'
+    };
+
+    // Sincronización POST con backend
+    try {
+        const res = await fetch(`${API_URL}/budget`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nuevoGasto)
+        });
+
+        if (res.ok) {
+            const gastoCreadoBD = await res.json();
+            budgetItems.push(gastoCreadoBD);
+        } else {
+            nuevoGasto.id = Date.now();
+            budgetItems.push(nuevoGasto);
+        }
+    } catch (e) {
+        nuevoGasto.id = Date.now();
+        budgetItems.push(nuevoGasto);
+    }
+
+    localStorage.setItem('budgetItems', JSON.stringify(budgetItems));
+    
+    if (nombreInput) nombreInput.value = '';
+    if (realInput) realInput.value = '';
+    
+    toggleFormGasto();
+    renderBudget('all');
+    showToast(`Servicio "${nombre}" guardado permanentemente`);
+};
+
+// Asegurar la llamada al inicializar la página
+document.addEventListener('DOMContentLoaded', () => {
+    cargarPresupuestoDesdeBD();
+});
