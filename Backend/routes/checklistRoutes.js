@@ -1,11 +1,20 @@
 import { Router } from 'express';
-import { getChecklist, createChecklist, updateChecklist, deleteChecklist } from '../controllers/checklistController.js';
+import { 
+    getChecklist, 
+    createChecklist, 
+    updateChecklist, 
+    deleteChecklist 
+} from '../controllers/checklistController.js';
+import { verifyToken, verifyReadOnlyMode } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
-router.get('/checklist/:userId', getChecklist);
-router.post('/checklist', createChecklist);
-router.patch('/checklist/:id', updateChecklist);
-router.delete('/checklist/:id', deleteChecklist);
+// Consultar tareas (permite lectura aunque el evento esté en modo solo lectura)
+router.get('/', verifyToken, getChecklist);
+
+// Operaciones de modificación (bloqueadas si el evento pasó a estado Completada / Cancelada)
+router.post('/', verifyToken, verifyReadOnlyMode, createChecklist);
+router.patch('/:id', verifyToken, verifyReadOnlyMode, updateChecklist);
+router.delete('/:id', verifyToken, verifyReadOnlyMode, deleteChecklist);
 
 export default router;

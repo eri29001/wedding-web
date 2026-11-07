@@ -3,9 +3,7 @@ import { pool } from '../config/db.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secreto_super_seguro_wedding_web_2026';
 
-// ==============================================================
-// MIDDLEWARE 1: VERIFICAR TOKEN DE AUTENTICACIÓN
-// ==============================================================
+// 1. Verificar Token JWT
 export const verifyToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Formato: Bearer <TOKEN>
@@ -16,19 +14,14 @@ export const verifyToken = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded; // Contiene { id (o userId), role, name }
+        req.user = decoded; // Guarda { id, role, name }
         next();
     } catch (error) {
         return res.status(403).json({ success: false, message: 'Token inválido o expirado. Inicia sesión de nuevo.' });
     }
 };
 
-// Alias opcional para mantener compatibilidad si importas 'verificarToken' en otros lados
-export const verificarToken = verifyToken;
-
-// ==============================================================
-// MIDDLEWARE 2: RESTRICCIÓN POR ROL (PLANNER / ADMIN)
-// ==============================================================
+// 2. Restricción por Rol (Planner / Admin)
 export const requirePlanner = (req, res, next) => {
     if (req.user && (req.user.role === 'planner' || req.user.role === 'admin')) {
         next();
@@ -37,16 +30,12 @@ export const requirePlanner = (req, res, next) => {
     }
 };
 
-// ==============================================================
-// MIDDLEWARE 3: MODO SOLO LECTURA TRAS CIERRE DE BODA (JC / REGLA 2.4)
-// ==============================================================
+// 3. Modo Solo Lectura tras cierre de evento
 export const verifyReadOnlyMode = async (req, res, next) => {
-    // Si la petición es de consulta (GET), se permite siempre
     if (req.method === 'GET') {
         return next();
     }
 
-    // Los administradores o planners pueden editar incluso tras el cierre
     if (req.user && (req.user.role === 'planner' || req.user.role === 'admin')) {
         return next();
     }
@@ -78,6 +67,3 @@ export const verifyReadOnlyMode = async (req, res, next) => {
         res.status(500).json({ success: false, message: 'Error interno al validar permisos del evento.' });
     }
 };
-
-// Alias opcional para mantener compatibilidad
-export const verificarModoSoloLectura = verifyReadOnlyMode;
