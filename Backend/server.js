@@ -13,6 +13,7 @@ import providerRoutes from './routes/providerRoutes.js';
 import privacyRoutes from './routes/privacyRoutes.js';
 import incidentsRoutes from './routes/incidentsRoutes.js';
 import seatingRoutes from './routes/seatingRoutes.js';
+import documentRoutes from './routes/documentRoutes.js';
 
 dotenv.config();
 
