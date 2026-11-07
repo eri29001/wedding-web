@@ -300,6 +300,68 @@ export async function inicializarBaseDeDatos() {
         `);
 
         // ==============================================================
+        // AUDITORÍA AUTOMÁTICA DE CAMBIOS EN PRESUPUESTOS Y FECHAS
+        // ==============================================================
+        await client.query(`
+            CREATE OR REPLACE FUNCTION audit_budget_and_dates_changes()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                -- Auditoría para cambios en presupuesto
+                IF TG_TABLE_NAME = 'budget' THEN
+                    IF (OLD.estimated_cost IS DISTINCT FROM NEW.estimated_cost) OR 
+                    (OLD.paid_amount IS DISTINCT FROM NEW.paid_amount) THEN
+                        INSERT INTO audit_logs (table_name, action_type, record_id, changed_data)
+                        VALUES (
+                            'budget',
+                            'UPDATE_AMOUNTS',
+                            NEW.id::text,
+                            jsonb_build_object(
+                                'user_id', NEW.user_id,
+                                'item_name', NEW.item_name,
+                                'old_estimated', OLD.estimated_cost,
+                                'new_estimated', NEW.estimated_cost,
+                                'old_paid', OLD.paid_amount,
+                                'new_paid', NEW.paid_amount
+                            )
+                        );
+                    END IF;
+                END IF;
+
+                -- Auditoría para cambios en la fecha de la boda
+                IF TG_TABLE_NAME = 'wedding_profiles' THEN
+                    IF (OLD.wedding_date IS DISTINCT FROM NEW.wedding_date) THEN
+                        INSERT INTO audit_logs (table_name, action_type, record_id, changed_data)
+                        VALUES (
+                            'wedding_profiles',
+                            'UPDATE_WEDDING_DATE',
+                            NEW.user_id,
+                            jsonb_build_object(
+                                'user_id', NEW.user_id,
+                                'old_date', OLD.wedding_date,
+                                'new_date', NEW.wedding_date
+                            )
+                        );
+                    END IF;
+                END IF;
+
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+
+            DROP TRIGGER IF EXISTS trg_audit_budget ON budget;
+            CREATE TRIGGER trg_audit_budget
+            AFTER UPDATE ON budget
+            FOR EACH ROW
+            EXECUTE FUNCTION audit_budget_and_dates_changes();
+
+            DROP TRIGGER IF EXISTS trg_audit_wedding_date ON wedding_profiles;
+            CREATE TRIGGER trg_audit_wedding_date
+            AFTER UPDATE ON wedding_profiles
+            FOR EACH ROW
+            EXECUTE FUNCTION audit_budget_and_dates_changes();
+        `);
+
+        // ==============================================================
         // SEEDING DE USUARIOS POR DEFECTO
         // ==============================================================
         const userCount = await client.query("SELECT COUNT(*) FROM users");
