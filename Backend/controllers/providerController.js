@@ -1,5 +1,5 @@
 import { query } from '../config/db.js';
-import { filtrarConIA } from '../aiLogic.js';
+import { filtrarConIA } from '../config/aiLogic.js';
 
 // 1. Obtener catálogo completo de proveedores
 export const getProviders = async (req, res) => {
