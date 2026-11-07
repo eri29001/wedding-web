@@ -1,6 +1,8 @@
 import { model } from '../config/gemini.js';
-import { query } from '../config/db.js';
-import { model } from '../config/gemini.js';
+import { pool } from '../config/db.js';
+
+// Helper para ejecutar consultas a la BD manteniendo compatibilidad
+const query = (text, params) => pool.query(text, params);
 
 export const askAI = async (req, res) => {
     try {
@@ -38,7 +40,7 @@ export const askAI = async (req, res) => {
 };
 
 // =========================================================================
-// 1. AUTOMATIZACIÓN PARA LA WEDDING PLANNER (Ahorro de 5 horas de gestión)
+// 1. AUTOMATIZACIÓN PARA LA WEDDING PLANNER
 // Genera un reporte ejecutivo diario analizando los datos reales en PostgreSQL
 // =========================================================================
 export const generatePlannerExecutiveReport = async (req, res) => {
@@ -93,7 +95,11 @@ export const generatePlannerExecutiveReport = async (req, res) => {
 // =========================================================================
 export const generateBridePersonalAssistant = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const userId = req.user?.id || req.user?.userId || req.params.userId;
+
+        if (!userId) {
+            return res.status(400).json({ success: false, message: "No se identificó el ID de la novia." });
+        }
 
         // A. Consultar la BD para obtener el perfil completo y el estado del presupuesto/checklist
         const perfilRes = await query("SELECT * FROM v_resumen_novias WHERE user_id = $1", [userId]);
@@ -135,11 +141,12 @@ export const generateBridePersonalAssistant = async (req, res) => {
 };
 
 // =========================================================================
-// 3. GENERADOR AUTOMÁTICO DE VOTOS MATRIMONIALES (Basado en Perfil BD)
+// 3. GENERADOR AUTOMÁTICO DE VOTOS MATRIMONIALES
 // =========================================================================
 export const generateVows = async (req, res) => {
     try {
-        const { userId, tono, anecdotas } = req.body;
+        const userId = req.user?.id || req.user?.userId || req.body.userId;
+        const { tono, anecdotas } = req.body;
 
         const profileRes = await query("SELECT partner_name, estilos_preferidos FROM wedding_profiles WHERE user_id = $1", [userId]);
         const perfil = profileRes.rows[0] || {};
@@ -156,6 +163,7 @@ export const generateVows = async (req, res) => {
         const result = await model.generateContent(prompt);
         res.json({ success: true, vows: result.response.text() });
     } catch (error) {
+        console.error("Error al generar votos:", error);
         res.status(500).json({ success: false, error: error.message });
     }
 };
