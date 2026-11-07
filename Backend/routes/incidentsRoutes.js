@@ -6,7 +6,7 @@ import {
     getIncidentsByUser,
     getProviderIncidentStats
 } from '../controllers/incidentsController.js';
-import { verificarToken } from '../middleware/authMiddleware.js';
+import { verifyToken } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
