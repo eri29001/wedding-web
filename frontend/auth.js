@@ -1,160 +1,282 @@
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     const API_URL = 'https://wedding-web-lygz.onrender.com/api';
+
+    // --- ELEMENTOS DEL DOM ---
+    const loginForm = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
     
-    // Obtener token y datos de la novia logueada
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    // Elementos de Error del Login
+    const errorBox = document.getElementById('mensajeError');
+    const errorText = document.getElementById('textoError');
 
-    // Redireccionar si no hay sesión activa (seguridad del lado cliente)
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
+    // Elementos del Modal de Recuperación
+    const modal = document.getElementById('recoveryModal');
+    const linkRecovery = document.getElementById('forgotLink');
+    const btnCancel = document.getElementById('btnCancel');
+    const btnSend = document.getElementById('btnSend');
+    const recoveryInput = document.getElementById('recoveryEmail');
+
+    // Botón de Cerrar Sesión
+    const btnLogout = document.getElementById('btnLogout');
+
+    // ======================================================
+    // HELPER PARA MOSTRAR/OCULTAR MENSAJES DENTRO DEL MODAL
+    // ======================================================
+    function getRecoveryMsgElement() {
+        let msgEl = document.getElementById('recoveryMsg');
+        if (!msgEl && recoveryInput) {
+            msgEl = document.createElement('div');
+            msgEl.id = 'recoveryMsg';
+            msgEl.style.marginTop = '-12px';
+            msgEl.style.marginBottom = '18px';
+            msgEl.style.fontSize = '0.85rem';
+            msgEl.style.fontWeight = '600';
+            msgEl.style.textAlign = 'center';
+            msgEl.style.lineHeight = '1.4';
+            recoveryInput.after(msgEl);
+        }
+        return msgEl;
     }
 
-    // 1. Mostrar Saludo Personalizado
-    const welcomeHeader = document.getElementById('welcomeHeader');
-    if (welcomeHeader) {
-        welcomeHeader.textContent = `¡Bienvenida, ${user.name || 'Novia'}! 💍`;
+    function showModalMessage(mensaje, esError = true) {
+        const msgEl = getRecoveryMsgElement();
+        if (msgEl) {
+            msgEl.innerText = mensaje;
+            msgEl.style.color = esError ? '#c62828' : '#2e7d32';
+            msgEl.style.backgroundColor = esError ? '#ffebee' : '#e8f5e9';
+            msgEl.style.padding = '8px 12px';
+            msgEl.style.borderRadius = '6px';
+            msgEl.style.border = `1px solid ${esError ? '#ffcdd2' : '#c8e6c9'}`;
+            msgEl.style.display = 'block';
+        }
     }
 
-    // 2. Inicializar Cargas de Datos y Eventos
-    await cargarResumenYProgreso();
-    inicializarWeddIAChat();
+    function clearModalMessage() {
+        const msgEl = document.getElementById('recoveryMsg');
+        if (msgEl) {
+            msgEl.innerText = '';
+            msgEl.style.display = 'none';
+        }
+    }
 
-    // ==============================================================
-    // 1. CARGA DE PROGRESO DE CHECKLIST Y ESTADO DE LA BODA
-    // ==============================================================
-    async function cargarResumenYProgreso() {
-        try {
-            const response = await fetch(`${API_URL}/checklist`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+    function mostrarError(mensaje) {
+        if (errorBox && errorText) {
+            errorText.innerText = mensaje;
+            errorBox.style.display = 'block';
+        } else {
+            alert(mensaje);
+        }
+    }
 
-            const data = await response.json();
+    // ======================================================
+    // 1. CERRAR SESIÓN (LOGOUT)
+    // ======================================================
+    if (btnLogout) {
+        btnLogout.addEventListener('click', (e) => {
+            e.preventDefault();
+            cerrarSesion();
+        });
+    }
 
-            if (response.ok && data.success) {
-                // Actualizar barra de progreso del checklist
-                const progressBar = document.getElementById('progressBar');
-                const progressPercentage = document.getElementById('progressPercentage');
-                const completion = data.stats?.completionPercentage || 0;
+    // ======================================================
+    // 2. LÓGICA DEL "OJO" (VER / OCULTAR CONTRASEÑA)
+    // ======================================================
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', () => {
+            const isPassword = passwordInput.getAttribute('type') === 'password';
+            passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+            togglePassword.classList.toggle('fa-eye', !isPassword);
+            togglePassword.classList.toggle('fa-eye-slash', isPassword);
+        });
+    }
 
-                if (progressBar) progressBar.style.width = `${completion}%`;
-                if (progressPercentage) progressPercentage.textContent = `${completion}%`;
-
-                // Verificar si la boda pasó a Modo Solo Lectura
-                if (data.isWeddingCompleted) {
-                    bloquearEdicionSoloLectura('¡Felicidades! Tu boda ha finalizado. La plataforma se encuentra en Modo Solo Lectura.');
+    // ======================================================
+    // 3. LÓGICA DEL MODAL (RECUPERAR CONTRASEÑA EN LÍNEA)
+    // ======================================================
+    if (linkRecovery) {
+        linkRecovery.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (modal) {
+                clearModalMessage();
+                modal.style.display = 'flex';
+                if (emailInput && emailInput.value) {
+                    recoveryInput.value = emailInput.value;
                 }
             }
-        } catch (error) {
-            console.error('Error al cargar progreso del checklist:', error);
-        }
+        });
     }
 
-    // Helper para mostrar alerta de Solo Lectura e inhabilitar formularios
-    function bloquearEdicionSoloLectura(mensaje) {
-        const banner = document.getElementById('readOnlyBanner');
-        if (banner) {
-            banner.innerHTML = `<i class="fas fa-lock"></i> ${mensaje}`;
-            banner.style.display = 'block';
-        }
-
-        // Deshabilitar botones de creación/edición en la vista
-        const actionButtons = document.querySelectorAll('.btn-editable, input[type="checkbox"]');
-        actionButtons.forEach(btn => btn.disabled = true);
+    if (btnCancel) {
+        btnCancel.addEventListener('click', () => {
+            if (modal) {
+                modal.style.display = 'none';
+                clearModalMessage();
+            }
+        });
     }
 
-    // ==============================================================
-    // 2. INTEGRACIÓN CON WeddIA (ASISTENTE IA DE GEMINI)
-    // ==============================================================
-    function inicializarWeddIAChat() {
-        const chatForm = document.getElementById('chatForm');
-        const chatInput = document.getElementById('chatInput');
-        const fileInput = document.getElementById('fileInput');
-        const chatMessages = document.getElementById('chatMessages');
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            clearModalMessage();
+        }
+    });
 
-        if (!chatForm || !chatInput || !chatMessages) return;
+    if (recoveryInput) {
+        recoveryInput.addEventListener('input', clearModalMessage);
+    }
 
-        chatForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    if (btnSend) {
+        btnSend.addEventListener('click', async () => {
+            const email = recoveryInput.value.trim();
+            clearModalMessage();
 
-            const promptText = chatInput.value.trim();
-            const file = fileInput?.files[0];
+            if (!email || !email.includes('@')) {
+                showModalMessage('⚠️ Por favor ingresa un correo electrónico válido.', true);
+                return;
+            }
 
-            if (!promptText && !file) return;
-
-            // Renderizar mensaje de la novia en el chat
-            agregarMensajeChat('Novia', promptText || '📄 [Documento adjunto]', 'user-message');
-            chatInput.value = '';
-
-            // Indicator de "WeddIA pensando..."
-            const loadingBubble = agregarMensajeChat('WeddIA', '✨ Analizando datos de tu boda...', 'ai-message loading');
+            btnSend.innerText = 'Verificando...';
+            btnSend.disabled = true;
 
             try {
-                let fileBase64 = null;
-                let mimeType = null;
-
-                // Si la novia adjuntó cotización o contrato en PDF/Imagen
-                if (file) {
-                    fileBase64 = await convertFileToBase64(file);
-                    mimeType = file.type;
-                    if (fileInput) fileInput.value = ''; // Limpiar input file
-                }
-
-                // Petición al endpoint de IA (aiController.js)
-                const response = await fetch(`${API_URL}/ai/ask`, {
+                const response = await fetch(`${API_URL}/auth/forgot-password`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        prompt: promptText,
-                        fileBase64: fileBase64 ? fileBase64.split(',')[1] : null,
-                        mimeType: mimeType
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
                 });
 
                 const data = await response.json();
-                loadingBubble.remove(); // Remover indicador de carga
 
                 if (response.ok && data.success) {
-                    agregarMensajeChat('WeddIA', data.reply, 'ai-message');
+                    showModalMessage(`✅ ${data.message || 'Se han enviado las instrucciones a tu correo.'}`, false);
+                    recoveryInput.value = '';
                 } else {
-                    agregarMensajeChat('WeddIA', `⚠️ ${data.message || 'No pude procesar tu consulta.'}`, 'ai-message error');
+                    showModalMessage(`⚠️ ${data.message || 'El correo electrónico no se encuentra registrado.'}`, true);
                 }
-
             } catch (error) {
-                console.error('Error al comunicarse con WeddIA:', error);
-                if (loadingBubble) loadingBubble.remove();
-                agregarMensajeChat('WeddIA', '⚠️ Error de conexión con la IA.', 'ai-message error');
+                console.error('Error de red al recuperar contraseña:', error);
+                showModalMessage('⚠ No se pudo establecer conexión con el servidor.', true);
+            } finally {
+                btnSend.innerText = 'Enviar Correo';
+                btnSend.disabled = false;
             }
         });
     }
 
-    // Helper para agregar burbujas de mensaje en la UI del chat
-    function agregarMensajeChat(remitente, texto, claseEstilo) {
-        const chatMessages = document.getElementById('chatMessages');
-        const bubble = document.createElement('div');
-        bubble.className = `chat-bubble ${claseEstilo}`;
-        bubble.innerHTML = `<strong>${remitente}:</strong> <p>${texto.replace(/\n/g, '<br>')}</p>`;
-        
-        chatMessages.appendChild(bubble);
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll al final
-        return bubble;
+    // ======================================================
+    // 4. LÓGICA DE LOGIN (SUBMIT)
+    // ======================================================
+    if (emailInput && passwordInput) {
+        [emailInput, passwordInput].forEach(input => {
+            input.addEventListener('input', () => {
+                if (errorBox) errorBox.style.display = 'none';
+            });
+        });
     }
 
-    // Helper para convertir archivos (PDF/Imágenes) a Base64 para Gemini
-    function convertFileToBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = (error) => reject(error);
-            reader.readAsDataURL(file);
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            const btnSubmit = loginForm.querySelector('button[type="submit"]');
+            const originalText = btnSubmit.innerText;
+
+            btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+            btnSubmit.disabled = true;
+            if (errorBox) errorBox.style.display = 'none';
+
+            try {
+                // CORRECCIÓN: Ruta apuntando a /auth/login
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && (data.success || data.token)) {
+                    // Mapeo flexible para soportar data.user u objetos sueltos del backend
+                    loginSuccess({
+                        id: data.user?.id || data.userId || data.id,
+                        name: data.user?.name || data.name || 'Usuario',
+                        role: data.user?.role || data.role || 'novia',
+                        mustChangePassword: data.mustChangePassword || false,
+                        token: data.token
+                    });
+                } else {
+                    mostrarError(data.message || 'Credenciales incorrectas. Revisa tu correo y contraseña.');
+                }
+
+            } catch (error) {
+                console.error('Error en el login:', error);
+                mostrarError('No hay conexión con el servidor backend.');
+            } finally {
+                btnSubmit.innerText = originalText;
+                btnSubmit.disabled = false;
+            }
         });
     }
 });
+
+// ======================================================
+// 5. FUNCIONES GLOBALES DE SESIÓN
+// ======================================================
+function loginSuccess(userData) {
+    if (!userData || !userData.token) return;
+
+    const roleClean = (userData.role || '').toLowerCase();
+
+    localStorage.setItem('usuarioLogueado', userData.name || ''); 
+    localStorage.setItem('role', roleClean);
+    localStorage.setItem('userId', userData.id || '');
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('token', userData.token);
+
+    // Redirección robusta por rol
+    if (roleClean === 'planner' || roleClean === 'admin') {
+        window.location.href = 'dashboard-wedding.html';
+    } else if (roleClean === 'novia' || roleClean === 'bride') {
+        window.location.href = 'dashboard-novia.html';
+    } else {
+        window.location.href = 'index.html';
+    }
+}
+
+function cerrarSesion() {
+    localStorage.clear();
+    window.location.href = 'login.html';
+}
+
+// ======================================================
+// 6. HELPER GLOBAL PARA PETICIONES AUTENTICADAS (JWT)
+// ======================================================
+async function fetchWithAuth(url, options = {}) {
+    const token = localStorage.getItem('token');
+    
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+
+    try {
+        const response = await fetch(url, { ...options, headers });
+
+        if (response.status === 401 || response.status === 403) {
+            console.warn("🔒 Token inválido o expirado. Redirigiendo a login...");
+            cerrarSesion();
+            return null;
+        }
+
+        return response;
+    } catch (error) {
+        console.error("Error en la petición autenticada:", error);
+        throw error;
+    }
+}

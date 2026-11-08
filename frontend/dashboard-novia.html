@@ -21,7 +21,7 @@
     <!-- Hoja de Estilos Principal -->
     <link rel="stylesheet" href="dashboard-novia.css">
 
-    <!-- Scripts de Librerías (Cargados antes de dashboard-novia.js) -->
+    <!-- Scripts de Librerías -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
@@ -29,30 +29,43 @@
 
 <body>
 
-    <!-- BOTÓN / CENTRO DE NOTIFICACIONES -->
-    <div class="notification-bell-wrapper" style="position: relative; cursor: pointer;" onclick="toggleNotificationsMenu(event)" title="Notificaciones">
-        <i class="fas fa-bell" style="font-size: 1.2rem; color: #555;" aria-hidden="true"></i>
-        <span id="unread-notifications-badge" class="badge-count">0</span>
+    <!-- BARRA SUPERIOR DE NAVEGACIÓN (NAVBAR CORREGIDA) -->
+    <nav class="top-nav flex-between-center p-15 bg-white shadow-sm" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 30px; background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;">
         
-        <!-- MENÚ DESPLEGABLE DE ALERTAS -->
-        <div id="notifications-dropdown" class="notifications-dropdown hidden" onclick="event.stopPropagation()">
-            <div class="dropdown-header">
-                <strong>Notificaciones</strong>
-                <span class="text-xs text-pink" onclick="marcarTodasLeidas(event)" style="cursor: pointer;">Marcar leídas</span>
-            </div>
-            <ul id="notifications-list" class="dropdown-list">
-                <!-- Carga dinámica mediante JS -->
-            </ul>
+        <!-- PARTE IZQUIERDA: LOGO / MARCA -->
+        <div class="nav-left flex-center-gap" style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: #d81b60;">AF Wedding</span>
         </div>
-    </div>
+
+        <!-- PARTE DERECHA: ACCIONES, NOTIFICACIONES Y PERFIL -->
+        <div class="nav-right flex-center-gap" style="display: flex; align-items: center; gap: 15px;">
+            
+            <!-- BOTÓN / CENTRO DE NOTIFICACIONES -->
+            <div class="notification-bell-wrapper" style="position: relative; cursor: pointer;" onclick="toggleNotificationsMenu(event)" title="Notificaciones">
+                <i class="fas fa-bell" style="font-size: 1.2rem; color: #555;" aria-hidden="true"></i>
+                <span id="unread-notifications-badge" class="badge-count">0</span>
+                
+                <!-- MENÚ DESPLEGABLE DE ALERTAS -->
+                <div id="notifications-dropdown" class="notifications-dropdown hidden" onclick="event.stopPropagation()">
+                    <div class="dropdown-header">
+                        <strong>Notificaciones</strong>
+                        <span class="text-xs text-pink" onclick="marcarTodasLeidas(event)" style="cursor: pointer;">Marcar leídas</span>
+                    </div>
+                    <ul id="notifications-list" class="dropdown-list">
+                        <!-- Carga dinámica mediante JS -->
+                    </ul>
+                </div>
+            </div>
+
             <!-- EXPORTAR / IMPRIMIR RESUMEN -->
             <button type="button" class="btn btn-ghost text-small" onclick="exportarResumenBoda()" title="Imprimir / Guardar Resumen en PDF">
                 <i class="fas fa-print" aria-hidden="true"></i> Resumen
             </button>
 
             <!-- FOTO DE PERFIL Y SALIR -->
-            <div id="navbar-avatar-btn" role="button" aria-label="Perfil de usuario" tabindex="0" onclick="openModal('modal-profile')">N</div>
-            <button type="button" id="logout-btn" class="btn btn-danger btn-logout" onclick="logout()" title="Cerrar Sesión" aria-label="Cerrar sesión">
+            <div id="navbar-avatar-btn" role="button" aria-label="Perfil de usuario" tabindex="0" onclick="openModal('modal-profile')" style="width: 36px; height: 36px; border-radius: 50%; background: #fce4ec; color: #d81b60; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;">N</div>
+            
+            <button type="button" id="logout-btn" class="btn btn-danger btn-logout" onclick="logout()" title="Cerrar Sesión" aria-label="Cerrar sesión" style="border-radius: 50%; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center;">
                 <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
             </button>
         </div> 
@@ -138,13 +151,12 @@
                     <div id="calendar"></div>
                 </section>
 
-                <!-- PROVEEDORES RECOMENDADOS (CON BOTÓN 'SELECCIONAR' Y FILTROS) -->
+                <!-- PROVEEDORES RECOMENDADOS -->
                 <section class="card section-blue" aria-labelledby="heading-prov-rec">
                     <div class="card-header-clean flex-between-center mb-15">
                         <h2 id="heading-prov-rec"><i class="fas fa-magic" aria-hidden="true"></i> Proveedores recomendados</h2>
                     </div>
 
-                    <!-- Filtros por Categoría -->
                     <div class="pastel-filters-container flex-center-gap mb-15" role="group" aria-label="Filtro de recomendaciones">
                         <button type="button" class="filter-pill active" onclick="filtrarRecomendados('all', this)">Todos</button>
                         <button type="button" class="filter-pill pill-blue" onclick="filtrarRecomendados('catering', this)">Catering</button>
@@ -157,7 +169,7 @@
                     </div>
                 </section>
 
-                <!-- NUEVA FUNCIÓN: MOMENTOS & CANCIONES CLAVE DE LA BODA -->
+                <!-- MOMENTOS & CANCIONES CLAVE DE LA BODA -->
                 <section class="card section-pink" aria-labelledby="heading-musica">
                     <div class="card-header-clean flex-between-center mb-10">
                         <h2 id="heading-musica" class="text-pink"><i class="fas fa-music" aria-hidden="true"></i> Momentos & Canciones</h2>
@@ -257,7 +269,7 @@
                     </div>
                 </section>
 
-                <!-- MIS PROVEEDORES (SIN BOTÓN AGREGAR) -->
+                <!-- MIS PROVEEDORES -->
                 <section class="card section-green" aria-labelledby="heading-mis-prov">
                     <div class="card-header-clean">
                         <h2 id="heading-mis-prov"><i class="fas fa-briefcase" aria-hidden="true"></i> Mis Proveedores</h2>
@@ -267,7 +279,7 @@
                     </div>
                 </section>
 
-                <!-- NUEVA FUNCIÓN: WIDGET DE NOTAS RÁPIDAS -->
+                <!-- WIDGET DE NOTAS RÁPIDAS -->
                 <section class="card widget-notes" aria-labelledby="heading-notas">
                     <div class="card-header-clean flex-between-center mb-10">
                         <h2 id="heading-notas"><i class="fas fa-sticky-note text-yellow" aria-hidden="true"></i> Notas Rápidas</h2>
@@ -280,7 +292,7 @@
         </main>
     </div>
 
-    <!-- ASISTENTE VIRTUAL INTELIGENTE (SIN BOTONES RÁPIDOS) -->
+    <!-- ASISTENTE VIRTUAL INTELIGENTE -->
     <button type="button" class="chatbot-toggler" id="chatbot-toggler-btn" aria-label="Abrir asistente virtual">
         <span class="material-symbols-outlined" aria-hidden="true">mode_comment</span>
     </button>
@@ -319,10 +331,7 @@
         </div>
     </div>
 
-    <!-- ==========================================================================
-        MODALES DE INTERACCIÓN Y DIÁLOGOS
-        ========================================================================== -->
-    
+    <!-- MODALES DE INTERACCIÓN -->
     <div id="modal-overlay" class="modal-overlay hidden" onclick="closeAllModals()"></div>
 
     <!-- Modal Planificación Completa -->
@@ -427,7 +436,7 @@
         </div>
     </div>
 
-    <!-- Modal Presupuesto (Con Acciones de Edición/Eliminación y Formulario Integrado) -->
+    <!-- Modal Presupuesto -->
     <div id="modal-budget" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-modal-budget">
         <div class="modal-content-modern" style="max-width: 780px;">
             <div class="modal-header-modern">
@@ -435,7 +444,6 @@
                 <button type="button" class="close-modal-modern" onclick="closeAllModals()" aria-label="Cerrar modal">&times;</button>
             </div>
 
-            <!-- Gráfico Doughnut -->
             <div class="p-15 bg-light" style="border-bottom: 1px solid #eee;">
                 <h4 class="modern-label text-center mb-10">Distribución de Gastos</h4>
                 <div style="position: relative; height: 180px; width: 100%;">
@@ -443,7 +451,6 @@
                 </div>
             </div>
         
-            <!-- Barra de Herramientas: Filtros + Botón Agregar -->
             <div class="modal-body-padded flex-between-center gap-10" style="flex-wrap: wrap; padding: 15px 24px 5px 24px;">
                 <div class="pastel-filters-container" role="group" aria-label="Filtros de presupuesto">
                     <button type="button" class="filter-pill active" onclick="filterBudgetTable('all', this)">Todo</button>
@@ -456,7 +463,6 @@
                 </button>
             </div>
         
-            <!-- Formulario Desplegable para Nuevo Servicio -->
             <div id="form-nuevo-gasto" class="p-15 bg-light border-bottom hidden" style="margin: 0 24px;">
                 <div class="grid-2-col" style="gap: 10px;">
                     <input type="text" id="gasto-nombre" class="modern-input" placeholder="Nombre del servicio (Ej: Floristería)">
@@ -469,7 +475,6 @@
                 </div>
             </div>
 
-            <!-- Tabla con Columna de Acciones -->
             <div class="modal-body-scrollable">
                 <table class="modern-table">
                     <thead>
@@ -487,7 +492,6 @@
                 </table>
             </div>
             
-            <!-- Pie con Totales y Alerta de Sobregiro -->
             <div class="modal-footer-summary flex-between-center p-20 bg-gray font-bold">
                 <span>Total Gastado:</span>
                 <span class="total-amount" id="modal-budget-total">$0 de $0</span>
@@ -672,7 +676,7 @@
         </div>
     </div>
 
-    <!-- Modal Detalles / Estadísticas de Proveedor (Marketplace) -->
+    <!-- Modal Detalles de Proveedor -->
     <div id="modal-vendor-details" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-vendor-details">
         <div class="modal-content-modern" style="max-width: 500px;">
             <div class="modal-header-modern">
@@ -685,7 +689,6 @@
         </div>
     </div>
 
-    <!-- Modal Ver Contrato / PDF -->
     <!-- Modal Visor y Descarga de Contrato PDF -->
     <div id="modal-pdf" class="custom-modal hidden" role="dialog" aria-modal="true" aria-labelledby="title-modal-pdf">
         <div class="modal-content-modern" style="max-width: 820px; width: 92%;">
@@ -694,14 +697,12 @@
                 <button type="button" class="close-modal-modern" onclick="closeAllModals()" aria-label="Cerrar modal">&times;</button>
             </div>
 
-            <!-- Visor PDF Interactivo embebido -->
             <div class="modal-body-padded" style="padding: 15px 24px;">
                 <div id="pdf-container" style="height: 480px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
                     <iframe id="pdf-viewer-frame" style="width: 100%; height: 100%; border: none;" src="about:blank"></iframe>
                 </div>
             </div>
 
-            <!-- Pie de Modal: Cerrar y Descargar -->
             <div class="modal-footer-summary flex-between-center p-20" style="padding: 16px 24px; background: #fafafa; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
                 <button type="button" class="btn btn-ghost" onclick="closeAllModals()">Cerrar Documento</button>
                 
@@ -750,6 +751,7 @@
     </div>
 
     <!-- SCRIPTS DE APLICACIÓN -->
+    <script src="guard.js"></script>
     <script src="auth.js"></script> 
     <script src="dashboard-novia.js"></script>
 </body>
