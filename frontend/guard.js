@@ -38,11 +38,9 @@
         return;
     }
 
-    // -------------------------------------------------------------
     // REGLA 3: Restricción de Roles (RBAC)
-    // -------------------------------------------------------------
     // A. Novia intentando entrar al panel de Planner
-    if (esDashboardPlanner && role === 'novia') {
+    if (esDashboardPlanner && (role === 'novia' || role === 'bride')) {
         console.warn("⛔ Rol no autorizado para Dashboard Planner.");
         window.location.href = 'dashboard-novia.html';
         return;
@@ -64,7 +62,7 @@
 function redirigirSegunRol(role) {
     if (role === 'planner' || role === 'admin') {
         window.location.href = 'dashboard-wedding.html';
-    } else if (role === 'novia') {
+    } else if (role === 'novia' || role === 'bride') {
         window.location.href = 'dashboard-novia.html';
     } else {
         document.documentElement.style.display = '';
